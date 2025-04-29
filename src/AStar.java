@@ -32,7 +32,7 @@ public class AStar {
      * @param goal The target container volumes.
      * @return A list of Transfers to reach the goal, or null if no solution exists.
      */
-    public List<Transfer> solve(State start, int[] goal){
+    public List<Transfer> solve(State start, GoalCondition goal){
         PriorityQueue<Node> frontier = new PriorityQueue<>();
         Set<State> visited = new HashSet<>();
 
@@ -43,7 +43,7 @@ public class AStar {
             Node current = frontier.poll();
             State currentState = current.getState();
 
-            if(currentState.matchesGoal(goal)){
+            if(goal.isSatisfied(currentState)){
                 return current.getPath();
             }
 
@@ -75,10 +75,10 @@ public class AStar {
     private List<MoveResult> generateNextStates(State current){
         List<MoveResult> results = new ArrayList<>();
         int[] volumes = current.getVolumes();
-        int numConainers = volumes.length;
+        int numContainers = volumes.length;
 
-        for(int i = 0; i < numConainers; i++){
-            for(int j = 0; j < numConainers; j++){
+        for(int i = 0; i < numContainers; i++){
+            for(int j = 0; j < numContainers; j++){
                 if(i != j && volumes[i] > 0){
                     int transferAmount = Math.min(volumes[i], capacities[j] - volumes[j]);
                     if(transferAmount > 0){
