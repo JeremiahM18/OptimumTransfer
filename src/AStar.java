@@ -14,6 +14,7 @@ import java.util.*;
 public class AStar {
 
     private final int[] capacities;
+    private final List<TransferConstraint> constraints;
 
     /**
      * Constructs the AStar solver with container capacities.
@@ -21,8 +22,12 @@ public class AStar {
      * @param capacity The maximum volume of each container.
      */
     public AStar(int[] capacity) {
-        //Defensive copy
+        this(capacity, new ArrayList<>());
+    }
+
+    public AStar(int[] capacity, List<TransferConstraint> constList) {
         capacities = capacity.clone();
+        constraints = new ArrayList<>(constList);
     }
 
     /**
@@ -57,7 +62,9 @@ public class AStar {
                     List<Transfer> newPath = new ArrayList<>(current.getPath());
                     newPath.add(action);
 
-                    frontier.add(new Node(nextState, newPath, current.getCost() + 1));
+                    int newCost = current.getCost() + action.getWeight();
+
+                    frontier.add(new Node(nextState, newPath, newCost));
                 }
             }
         }
@@ -81,14 +88,30 @@ public class AStar {
             for(int j = 0; j < numContainers; j++){
                 if(i != j && volumes[i] > 0){
                     int transferAmount = Math.min(volumes[i], capacities[j] - volumes[j]);
-                    if(transferAmount > 0){
-                        int[] newVolumes = volumes.clone();
-                        newVolumes[i] -= transferAmount;
-                        newVolumes[j] += transferAmount;
+                    if(transferAmount > 0) {
 
-                        State newState = new State(newVolumes);
-                        Transfer transfer = new Transfer(i, j, transferAmount);
-                        results.add(new MoveResult(newState, transfer));
+                        boolean allowed = true;
+                        for (TransferConstraint constraint : constraints) {
+                            if (!constraint.isAllowed(current, i, j, transferAmount)) {
+                                allowed = false;
+                                break;
+                            }
+                        }
+
+                        if (allowed) {
+
+
+                            int[] newVolumes = volumes.clone();
+                            newVolumes[i] -= transferAmount;
+                            newVolumes[j] += transferAmount;
+
+                            State newState = new State(newVolumes);
+
+                            int weight = transferAmount;
+
+                            Transfer transfer = new Transfer(i, j, transferAmount, weight);
+                            results.add(new MoveResult(newState, transfer));
+                        }
                     }
                 }
             }

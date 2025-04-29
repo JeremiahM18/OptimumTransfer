@@ -7,7 +7,7 @@
  * Description:
  * Represents the results of applying a transfer action.
  * - The resulting new State after the move.
- * - The Transfer action that caused the new State.
+ * - The Transfer action (with cost) that caused it.
  */
 
 public class MoveResult {

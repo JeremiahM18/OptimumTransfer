@@ -37,6 +37,7 @@ public class Main {
         int[] capacity = new int[numContainers];
         int[] startVol = new int[numContainers];
         int[] goalVol = new int[numContainers];
+        List<TransferConstraint> constraints = new ArrayList<>();
 
         // Input capacities
         System.out.println("\nEnter the capacities for each container:");
@@ -125,9 +126,49 @@ public class Main {
             }
         }
 
+        System.out.print("\nWould you like to add any constraints? (yes/no): ");
+        sc.nextLine();
+        String response = sc.nextLine().trim().toLowerCase();
+        if(response.equals("yes")){
+            boolean addedConstraint = true;
+
+            while(addedConstraint){
+                System.out.println("\nSelect a constraint to add:");
+                System.out.println("1. Block transfers from container A to B");
+                System.out.println("2. Block transfers greater than X units");
+                System.out.println("3. Block transfers to container C");
+                System.out.print("4. Done adding constraints");
+                int option = getValidInt(sc, "Choice: ", 1,4);
+
+                switch (option) {
+                    case 1 -> {
+                        int from = getValidInt(sc, "Enter container A index: ", 0, numContainers - 1);
+                        int to = getValidInt(sc, "Enter container B index: ", 0, numContainers - 1);
+                        constraints.add((state, f, t, amt) -> !(f == from && t == to));
+                        System.out.println("\nConstraint added: Block transfer from " + from + " to " + to);
+                    }
+                    case 2 -> {
+                        int max = getValidInt(sc, "Enter maximum transfer amount: ", 1, Integer.MAX_VALUE);
+                        constraints.add((state, f, t, amt) -> amt <= max);
+                        System.out.println("\nConstraint added: Max transfer amount = " + max);
+                    }
+                    case 3 -> {
+                        int to = getValidInt(sc, "Enter container index to block receiving: ", 0, numContainers - 1);
+                        constraints.add((state, f, t, amt) -> t != to);
+                        System.out.println("\nConstraint added: Block transfers to container = " + to);
+                    }
+                    case 4 -> {
+                        addedConstraint = false;
+                        System.out.println("Done adding constraints");
+                    }
+
+                }
+            }
+        }
+
         // Solve and print result
         State start = new State(startVol);
-        AStar solver = new AStar(capacity);
+        AStar solver = new AStar(capacity, constraints);
         List<Transfer> result = solver.solve(start, goal);
 
         if(result != null){
