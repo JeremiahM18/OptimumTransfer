@@ -120,5 +120,60 @@ public class AStar {
         return results;
     }
 
+    /**
+     * Finds all valid paths from start to goal within a given max depth.
+     *
+     * @param start The starting state.
+     * @param goal The goal condition to satisfy.
+     * @param maxDepth The maximum number of steps to allow.
+     * @return A list of all valid transfer paths (each as a list of Transfers).
+     */
+    public List<List<Transfer>> findAllSolutions(State start, GoalCondition goal, int maxDepth){
+        List<List<Transfer>> allSolutions = new ArrayList<>();
+        Queue<Node> queue = new LinkedList<>();
+        Set<State> visited = new HashSet<>();
+
+        queue.add(new Node(start, new ArrayList<>(), 0));
+        visited.add(start);
+
+        while(!queue.isEmpty()){
+            Node current = queue.poll();
+
+            if(goal.isSatisfied(current.getState())){
+                allSolutions.add(current.getPath());
+            }
+
+            if(current.getPath().size() >= maxDepth){
+                continue;
+            }
+
+            for(MoveResult next : generateNextStates(current.getState())){
+                State nextState = next.getNewState();
+                Transfer action = next.getAction();
+
+                if(!visited.contains(nextState)){
+                    visited.add(nextState);
+
+                    List<Transfer> newPath = new ArrayList<>(current.getPath());
+                    newPath.add(action);
+
+                    queue.add(new Node(nextState, newPath, current.getCost() + action.getWeight()));
+                }
+            }
+        }
+        return allSolutions;
+    }
+
+    /**
+     * Finds all valid paths from the start to a goal state without any depth limit.
+     * Output over 50 will show total count only.
+     *
+     * @param start The starting state.
+     * @param goal The goal condition
+     * @return All valid paths as lists of Transfers.
+     */
+    public List<List<Transfer>> findAllPaths(State start, GoalCondition goal){
+        return findAllSolutions(start, goal, Integer.MAX_VALUE);
+    }
 }
 

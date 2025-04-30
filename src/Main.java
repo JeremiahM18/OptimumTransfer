@@ -180,16 +180,33 @@ public class Main {
         // Solve and print result
         State start = new State(startVol);
         AStar solver = new AStar(capacity, constraints);
-        List<Transfer> result = solver.solve(start, goal);
 
-        if(result != null){
-            System.out.println("\n=== Solution Found ====");
-            System.out.println("Steps: " + result.size());
-            for(Transfer move : result){
-                System.out.println(move);
-            }
+        System.out.println("\nChoose solving strategy: ");
+        System.out.println("1. Find the shortest (fastest) solution");
+        System.out.println("2. Find all valid solutions up to a depth");
+        System.out.println("3. Find all valid solutions (Anything over 50 will simply print total)");
+        int solveChoice = getValidInt(sc, "Choice: ", 1, 3);
+
+        if(solveChoice == 2){
+            int maxDepth = getValidInt(sc, "Enter max depth: ", 1, Integer.MAX_VALUE);
+            List<List<Transfer>> allSolutions = solver.findAllSolutions(start, goal, maxDepth);
+            printAllSolutions(allSolutions);
+        } else if(solveChoice == 3){
+            List<List<Transfer>> allSolutions = solver.findAllPaths(start, goal);
+            printAllSolutions(allSolutions);
         } else {
-            System.out.println("\nNo solution found.");
+
+            List<Transfer> result = solver.solve(start, goal);
+
+            if (result != null) {
+                System.out.println("\n=== Solution Found ====");
+                System.out.println("Steps: " + result.size());
+                for (Transfer move : result) {
+                    System.out.println(move);
+                }
+            } else {
+                System.out.println("\nNo solution found.");
+            }
         }
         sc.close();
     }
@@ -216,5 +233,29 @@ public class Main {
             }
         }
         return value;
+    }
+
+    private static void printAllSolutions(List<List<Transfer>> allSolutions) {
+        int total = allSolutions.size();
+
+        if(total == 0){
+            System.out.println("No solution found.");
+            return;
+        }
+
+        System.out.println("\nTotal solutions: " + total);
+
+        if(total > 50) {
+            System.out.println("Too many solutions to display (>50). Showing total only.");
+            return;
+        }
+
+        int count = 1;
+        for(List<Transfer> solution : allSolutions){
+            System.out.println("\nSolution " + count++ + " (Steps: " + solution.size() + ")");
+            for(Transfer t : solution){
+                System.out.println(t);
+            }
+        }
     }
 }
