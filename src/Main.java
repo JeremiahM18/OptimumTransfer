@@ -199,11 +199,12 @@ public class Main {
             List<Transfer> result = solver.solve(start, goal);
 
             if (result != null) {
-                System.out.println("\n=== Solution Found ====");
+                System.out.println("\n=== Shortest Solution Found ====");
                 System.out.println("Steps: " + result.size());
                 for (Transfer move : result) {
                     System.out.println(move);
                 }
+                Visualizer.show(result, startVol, capacity);
             } else {
                 System.out.println("\nNo solution found.");
             }
