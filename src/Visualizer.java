@@ -41,7 +41,10 @@ public class Visualizer {
     private static void printState(int step, int[] volumes, int[] capacities) {
         System.out.print("Container States: ");
         for (int i = 0; i < volumes.length; i++) {
-            System.out.print("[C" + i + ": " + volumes[i] + "/" + capacities[i] + "]");
+            int filled = volumes[i];
+            int cap = capacities[i];
+            String bar = "=".repeat(filled) + " ".repeat(cap - filled);
+            System.out.printf("C%d [%s] %d%d\n", i, bar, filled, cap);
         }
         System.out.println();
     }
