@@ -137,7 +137,9 @@ public class Main {
                 System.out.println("1. Block transfers from container A to B");
                 System.out.println("2. Block transfers greater than X units");
                 System.out.println("3. Block transfers to container C");
-                System.out.print("4. Done adding constraints");
+                System.out.println("4. Only allow even-numbered containers to send");
+                System.out.println("5. Block transfers less than X units");
+                System.out.print("6. Done adding constraints");
                 int option = getValidInt(sc, "Choice: ", 1,4);
 
                 switch (option) {
@@ -158,6 +160,15 @@ public class Main {
                         System.out.println("\nConstraint added: Block transfers to container = " + to);
                     }
                     case 4 -> {
+                        constraints.add((state, f, t, amt) -> f % 2 == 0);
+                        System.out.println("\nConstraint added: Only even-numbered containers can send.");
+                    }
+                    case 5 -> {
+                        int min = getValidInt(sc, "Enter minimum transfer amount: ", 1, Integer.MAX_VALUE);
+                        constraints.add((state, f, t, amt) -> amt >= min);
+                        System.out.println("\nConstraint added: Block transfers less than " + min);
+                    }
+                    case 6 -> {
                         addedConstraint = false;
                         System.out.println("Done adding constraints");
                     }
