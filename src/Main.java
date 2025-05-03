@@ -130,8 +130,39 @@ public class Main {
                 }
             }
 
-            System.out.print("\nWould you like to add any constraints? (yes/no): ");
+            Heuristic selectedHeuristic = new ZeroHeuristic();
             sc.nextLine();
+
+            System.out.println("\nWould you like to add a heuristic? (yes/no):");
+            String useHeuristic = sc.nextLine().trim().toLowerCase();
+
+            if(useHeuristic.equals("yes")){
+                System.out.println("\nSelect a heuristic strategy:");
+                System.out.println("1. Even Distribution Heuristic");
+                System.out.println("2. Single Container Heuristic (for use with goal type 2)");
+                System.out.println("3. Total Volume Heuristic");
+
+                int hChoice = getValidInt(sc, "Enter heuristic strategy: ", 1, 3);
+
+                switch (hChoice) {
+                    case 1 -> {
+                        selectedHeuristic = new EvenDistributionHeuristic();
+                    }
+                    case 2 -> {
+                        if(goal instanceof SingleContainerGoal scGoal){
+                            selectedHeuristic = new SingleContainerHeuristic(scGoal.getIndex(), scGoal.getDesiredVolume());
+                        } else {
+                            System.out.println("Warning: Goal is not compatible with Single Container Heuristic. Using default instead.");
+                        }
+                    }
+                    case 3 -> {
+                        int goalSum = getValidInt(sc, "Enter desired total volume: ", 0, Integer.MAX_VALUE);
+                        selectedHeuristic = new TotalVolumeHeuristic(goalSum);
+                    }
+                }
+            }
+
+            System.out.print("\nWould you like to add any constraints? (yes/no): ");
             String response = sc.nextLine().trim().toLowerCase();
             if(response.equals("yes")){
                 boolean addedConstraint = true;
@@ -182,7 +213,7 @@ public class Main {
 
             // Solve and print result
             State start = new State(startVol);
-            AStar solver = new AStar(capacity, constraints);
+            AStar solver = new AStar(capacity, constraints, selectedHeuristic);
 
             System.out.println("\nChoose solving strategy: ");
             System.out.println("1. Find the shortest (fastest) solution");
@@ -195,9 +226,11 @@ public class Main {
                 int maxDepth = getValidInt(sc, "Enter max depth: ", 1, Integer.MAX_VALUE);
                 List<List<Transfer>> allSolutions = solver.findAllSolutions(start, goal, maxDepth);
                 printAllSolutions(allSolutions);
+                visualizeSolutions(sc, allSolutions, startVol, capacity);
             } else if(solveChoice == 3){
                 List<List<Transfer>> allSolutions = solver.findAllPaths(start, goal);
                 printAllSolutions(allSolutions);
+                visualizeSolutions(sc, allSolutions, startVol, capacity);
             } else {
 
                 List<Transfer> result = solver.solve(start, goal);
@@ -218,9 +251,9 @@ public class Main {
                         String guiChoice = sc.nextLine().trim().toLowerCase();
                         if (guiChoice.equals("yes")) {
                             SwingUtilities.invokeLater(() ->
-                                    new TransferGUI(result, startVol.clone(), capacity.clone()).setVisible(true));
+                                    new TransferGUI(result, startVol, capacity).setVisible(true));
                         } else {
-                            Visualizer.show(result, startVol.clone(), capacity.clone());
+                            Visualizer.show(result, startVol, capacity);
                         }
                     }
 
@@ -234,6 +267,7 @@ public class Main {
                 }
             }
 
+            sc.nextLine();
             System.out.print("\nWould you like to restart the program? (yes/no): ");
             String restart = sc.nextLine().trim().toLowerCase();
             if (!restart.equals("yes")) {
@@ -290,6 +324,43 @@ public class Main {
             for(Transfer t : solution){
                 System.out.println(t);
             }
+        }
+    }
+
+    private static void visualizeSolutions(Scanner sc, List<List<Transfer>> allSolutions, int[] startVol, int[] capacity) {
+        if(allSolutions.size() <= 50){
+            System.out.print("\nWould you like to visualize a solution? (yes/no): ");
+            String visualize = sc.nextLine().trim().toLowerCase();
+
+            if(visualize.equals("yes")){
+                System.out.println("1. View a specific solution");
+                System.out.println("2. View all solutions in order");
+                int viewMode = getValidInt(sc, "Choice: ", 1, 2);
+                sc.nextLine();
+
+                if(viewMode == 1){
+                    int index = getValidInt(sc, "Enter solution number (1 to " + allSolutions.size() + "): ", 1, allSolutions.size());
+                    sc.nextLine();
+                    List<Transfer> selectedPath = allSolutions.get(index - 1);
+
+                    System.out.print("Use a fancy GUI? (yes/no): ");
+                    String guiChoice = sc.nextLine().trim().toLowerCase();
+                    if (guiChoice.equals("yes")) {
+                        SwingUtilities.invokeLater(() -> new TransferGUI(selectedPath, startVol, capacity).setVisible(true));
+                    } else {
+                        Visualizer.show(selectedPath, startVol, capacity);
+                    }
+                } else {
+                    for (int i = 0; i < allSolutions.size(); i++) {
+                        System.out.println("\n--- Solution " + (i + 1) + " ---");
+                        Visualizer.show(allSolutions.get(i), startVol, capacity);
+                        System.out.print("Press Enter to continue to the next solution...");
+                        sc.nextLine();
+                    }
+                }
+            }
+        } else {
+            System.out.println("Too many solutions to visualize. Showing total only.");
         }
     }
 

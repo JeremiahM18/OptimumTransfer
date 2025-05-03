@@ -15,6 +15,7 @@ public class AStar {
 
     private final int[] capacities;
     private final List<TransferConstraint> constraints;
+    private final Heuristic heuristic;
 
     /**
      * Constructs the AStar solver with container capacities.
@@ -22,12 +23,17 @@ public class AStar {
      * @param capacity The maximum volume of each container.
      */
     public AStar(int[] capacity) {
-        this(capacity, new ArrayList<>());
+        this(capacity, new ArrayList<>(), state -> 0);
     }
 
-    public AStar(int[] capacity, List<TransferConstraint> constList) {
+    public AStar(int[] capacity, List<TransferConstraint> constList ){
+        this(capacity, constList, state -> 0);
+    }
+
+    public AStar(int[] capacity, List<TransferConstraint> constList, Heuristic heur) {
         capacities = capacity.clone();
         constraints = new ArrayList<>(constList);
+        heuristic = heur;
     }
 
     /**
@@ -38,7 +44,7 @@ public class AStar {
      * @return A list of Transfers to reach the goal, or null if no solution exists.
      */
     public List<Transfer> solve(State start, GoalCondition goal){
-        PriorityQueue<Node> frontier = new PriorityQueue<>();
+        PriorityQueue<Node> frontier = new PriorityQueue<>(Comparator.comparingInt(n -> n.getCost() + heuristic.estimate(n.getState())));
         Set<State> visited = new HashSet<>();
 
         frontier.add(new Node(start, new ArrayList<>(), 0));

@@ -24,6 +24,13 @@ public class SingleContainerGoal implements GoalCondition{
         desiredVolume = desiredVol;
     }
 
+    public int getIndex() {
+        return containerIndex;
+    }
+    public int getDesiredVolume() {
+        return desiredVolume;
+    }
+
     @Override
     public boolean isSatisfied(State state) {
         return state.getVolumes()[containerIndex] == desiredVolume;
