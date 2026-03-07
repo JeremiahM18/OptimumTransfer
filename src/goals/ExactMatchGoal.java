@@ -1,7 +1,11 @@
+package goals;
+
+import model.State;
+
 import java.util.Arrays;
 
 /**
- * ExactMatchGoal
+ * goals.ExactMatchGoal
  *
  * Author: Jeremiah McDonald
  * Date: 29 April 2025
@@ -10,11 +14,11 @@ import java.util.Arrays;
  * A goal condition where the target volumes must match exactly for each container.
  */
 
-public class ExactMatchGoal implements  GoalCondition{
+public class ExactMatchGoal implements GoalCondition {
     private final int[] targetVolumes;
 
     /**
-     * Constructs an ExactMatchGoal with the given target volumes.
+     * Constructs an goals.ExactMatchGoal with the given target volumes.
      *
      * @param targetVol The desired final volumes for each container.
      */

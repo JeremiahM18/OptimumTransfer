@@ -1,5 +1,7 @@
+package model;
+
 /**
- * Transfer
+ * model.Transfer
  *
  * Author: Jeremiah McDonald
  * Date: 29 April 2025
@@ -16,7 +18,7 @@ public class Transfer {
     private final int weight;
 
     /**
-     * Constructs a Transfer object with source, target, amount, and weight.
+     * Constructs a model.Transfer object with source, target, amount, and weight.
      *
      * @param fromCon Index of the source container.
      * @param toCon Index of the destination container.
@@ -63,7 +65,7 @@ public class Transfer {
      */
     @Override
     public String toString() {
-        return "Transfer " + amount + " units from container " + fromContainer + " to container " +
+        return "model.Transfer " + amount + " units from container " + fromContainer + " to container " +
                 toContainer + " (Cost: " + weight + " )";
     }
 }

@@ -1,7 +1,9 @@
+package search;
+
 import java.util.*;
 
 /**
- * AStar
+ * Search.AStar
  *
  * Author: Jeremiah McDonald
  * Date: 29 April 2025
@@ -18,7 +20,7 @@ public class AStar {
     private final Heuristic heuristic;
 
     /**
-     * Constructs the AStar solver with container capacities.
+     * Constructs the Search.AStar solver with container capacities.
      *
      * @param capacity The maximum volume of each container.
      */
@@ -39,7 +41,7 @@ public class AStar {
     /**
      * Solves the container transfer problem using A* search.
      *
-     * @param start The starting State.
+     * @param start The starting model.State.
      * @param goal The target container volumes.
      * @return A list of Transfers to reach the goal, or null if no solution exists.
      */
@@ -83,7 +85,7 @@ public class AStar {
      * Generates all valid next states from the current state by trying all possible transfers.
      *
      * @param current The current state.
-     * @return A list of MoveResult objects representing all possible next moves.
+     * @return A list of model.MoveResult objects representing all possible next moves.
      */
     private List<MoveResult> generateNextStates(State current){
         List<MoveResult> results = new ArrayList<>();

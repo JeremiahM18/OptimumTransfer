@@ -1,3 +1,7 @@
+package visualization;
+
+import model.Transfer;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -5,7 +9,7 @@ import java.awt.event.ActionListener;
 import java.util.List;
 
 /**
- * TransferGUI
+ * visualization.TransferGUI
  *
  * Author: Jeremiah McDonald
  * Date: 30 April 2025
@@ -20,7 +24,7 @@ public class TransferGUI extends JFrame {
     private JTextArea outputArea;
 
     public TransferGUI(List<Transfer> steps, int[] startVol, int[] capacity) {
-        setTitle("Container Transfer Visualization");
+        setTitle("model.Container model.Transfer Visualization");
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -46,14 +50,14 @@ public class TransferGUI extends JFrame {
     private void visualizeSteps(List<Transfer> steps, int[] startVol, int[] capacity) {
         outputArea.setText("");
         int[] volumes = startVol.clone();
-        outputArea.append("Initial State: " + formatState(volumes, capacity) + "\n\n");
+        outputArea.append("Initial model.State: " + formatState(volumes, capacity) + "\n\n");
 
         int step = 1;
         for(Transfer t : steps) {
             outputArea.append("Step " + step++ + ": " + t + "\n");
             volumes[t.getFromContainer()] -= t.getAmount();
             volumes[t.getToContainer()] += t.getAmount();
-            outputArea.append("State: " + formatState(volumes, capacity) + "\n\n");
+            outputArea.append("model.State: " + formatState(volumes, capacity) + "\n\n");
         }
     }
 

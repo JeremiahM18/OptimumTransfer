@@ -1,24 +1,28 @@
+package goals;
+
+import model.State;
+
 import java.util.Arrays;
 
 /**
- * SimpleGoalParser
+ * goals.SimpleGoalParser
  *
  * Author: Jeremiah McDonald
  * Date: 29 April 2025
  *
  * Description:
- * Parses basic custom goal expressions into GoalCondition objects.
+ * Parses basic custom goal expressions into goals.GoalCondition objects.
  * Supports simple arithmetic, container references, and comparisons.
  */
 
 public class SimpleGoalParser {
 
     /**
-     * Parses a string expression into a GoalCondition
+     * Parses a string expression into a goals.GoalCondition
      *
      * @param expr The user-provided expression.
      * @param numContainers The number of containers.
-     * @return A GoalCondition representing the parsed expression.
+     * @return A goals.GoalCondition representing the parsed expression.
      */
     public static GoalCondition parse(String expr, int numContainers){
         expr = expr.replaceAll("\\s+", ""); // Remove all spaces
@@ -80,7 +84,7 @@ public class SimpleGoalParser {
     }
 
     // Evaluates one side of the expression
-    private static int evaluateSide(String side,State state, int numContainers){
+    private static int evaluateSide(String side, State state, int numContainers){
         if(side.equals("sum")){
             return Arrays.stream(state.getVolumes()).sum();
         }

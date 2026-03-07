@@ -1,5 +1,9 @@
+package goals;
+
+import model.State;
+
 /**
- * GoalCondition
+ * goals.GoalCondition
  *
  * Author: Jeremiah McDonald
  * Date: 29 April 2025

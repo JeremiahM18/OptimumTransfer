@@ -1,15 +1,19 @@
+package heuristics;
+
+import model.State;
+
 /**
- * SingleContainerHeuristic
+ * heuristics.SingleContainerHeuristic
  *
  * Author: Jeremiah McDonald
  * Date: 3 May 2025
  *
  * Description:
- * Heuristic targeting a specific container to reach a target volume.
+ * heuristics.Heuristic targeting a specific container to reach a target volume.
  * Returns the absolute difference from the goal.
  */
 
-public class SingleContainerHeuristic implements Heuristic{
+public class SingleContainerHeuristic implements Heuristic {
     private final int targetIndex;
     private final int targetVolume;
 

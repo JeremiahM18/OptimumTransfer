@@ -1,7 +1,11 @@
+package visualization;
+
+import model.Transfer;
+
 import java.util.List;
 
 /**
- * Visualizer
+ * visualization.Visualizer
  *
  * Author: Jeremiah McDonald
  * Date: 30 April 2025
@@ -23,7 +27,7 @@ public class Visualizer {
         int[] volumes = startVol.clone();
         int step = 0;
 
-        System.out.println("\n=== Transfer Visualization ===");
+        System.out.println("\n=== model.Transfer Visualization ===");
         printState(step, volumes, capacities);
 
         for(Transfer t : transfers) {
@@ -39,7 +43,7 @@ public class Visualizer {
     }
 
     private static void printState(int step, int[] volumes, int[] capacities) {
-        System.out.print("Container States: ");
+        System.out.print("model.Container States: ");
         for (int i = 0; i < volumes.length; i++) {
             int filled = volumes[i];
             int cap = capacities[i];

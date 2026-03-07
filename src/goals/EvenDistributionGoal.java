@@ -1,5 +1,9 @@
+package goals;
+
+import model.State;
+
 /**
- * EvenDistributionGoal
+ * goals.EvenDistributionGoal
  *
  * Author: Jeremiah McDonald
  * Date: 29 April 2025
@@ -8,7 +12,7 @@
  * a goal condition where all containers must have the same volume.
  */
 
-public class EvenDistributionGoal implements GoalCondition{
+public class EvenDistributionGoal implements GoalCondition {
 
     @Override
     public boolean isSatisfied(State state){

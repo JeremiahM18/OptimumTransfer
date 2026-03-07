@@ -1,14 +1,16 @@
+package search;
+
 import java.util.List;
 
 /**
- * Node
+ * Search.Node
  *
  * Author: Jeremiah McDonald
  * Date: 29 April 2025
  *
  * Description:
  * Represents a node in the A* search algorithm.
- * Each node contains a State, the path of Transfers to reach it,
+ * Each node contains a model.State, the path of Transfers to reach it,
  * and the total cost (number of moves so far).
  */
 
@@ -18,7 +20,7 @@ public class Node implements Comparable<Node> {
     private final int cost;
 
     /**
-     * Constructs a Node for A* search.
+     * Constructs a Search.Node for A* search.
      * @param s The current state at this node.
      * @param p The list of Transfers taken to reach this state.
      * @param c The cumulative cost (number of moves) so far.
@@ -30,21 +32,21 @@ public class Node implements Comparable<Node> {
     }
 
     /**
-     * Returns the current State of this Node.
+     * Returns the current model.State of this Search.Node.
      */
     public State getState(){
         return state;
     }
 
     /**
-     * Returns the path of Transfers taken to reach this Node.
+     * Returns the path of Transfers taken to reach this Search.Node.
      */
     public List<Transfer> getPath(){
         return path;
     }
 
     /**
-     * Returns the total cost (number of moves) to reach this Node.
+     * Returns the total cost (number of moves) to reach this Search.Node.
      */
     public int getCost(){
         return cost;

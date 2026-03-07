@@ -1,8 +1,9 @@
+package model;
+
 import java.util.Arrays;
-import java.util.Objects;
 
 /**
- * State
+ * model.State
  *
  * Author: Jeremiah McDonald
  * Date: 23 April 2025
@@ -16,7 +17,7 @@ public class State {
     private final int[] volumes;
 
     /**
-     * Constructs a State from an array of container volumes.
+     * Constructs a model.State from an array of container volumes.
      *
      * @param vol The array representing the current volume in each container.
       */

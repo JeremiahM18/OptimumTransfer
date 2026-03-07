@@ -1,17 +1,18 @@
+package app;
+
 import javax.swing.*;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 
 /**
- * Main
+ * app.Main
  *
  * Author: Jeremiah McDonald
  * Date: 29 April 2025
  *
  * Description:
- * Entry point to test the AStar container transfer solver.
+ * Entry point to test the Search.AStar container transfer solver.
  * Allows user to input container capacities, starting volumes and select a goal condition.
  * Supports predefined goals and custom lambda-style goal building.
  */
@@ -23,7 +24,7 @@ public class Main {
         Scanner sc = new Scanner(System.in);
 
         while(running){
-            System.out.println("=== Container Transfer Optimization ===");
+            System.out.println("=== model.Container model.Transfer Optimization ===");
 
             // Input number of containers
             int numContainers = 0;
@@ -90,7 +91,7 @@ public class Main {
                     case 4 -> {
                         System.out.println("\nCustom Goal Builder");
                         System.out.println("1. Total volume of all containers equals X");
-                        System.out.println("2. Container[i] >= X");
+                        System.out.println("2. model.Container[i] >= X");
                         System.out.println("3. Sum of two containers equals X");
 
                         int customType = getValidInt(sc, "Enter custom goal type: ", 1, 3);
@@ -138,9 +139,9 @@ public class Main {
 
             if(useHeuristic.equals("yes")){
                 System.out.println("\nSelect a heuristic strategy:");
-                System.out.println("1. Even Distribution Heuristic");
-                System.out.println("2. Single Container Heuristic (for use with goal type 2)");
-                System.out.println("3. Total Volume Heuristic");
+                System.out.println("1. Even Distribution heuristics.Heuristic");
+                System.out.println("2. Single model.Container heuristics.Heuristic (for use with goal type 2)");
+                System.out.println("3. Total Volume heuristics.Heuristic");
 
                 int hChoice = getValidInt(sc, "Enter heuristic strategy: ", 1, 3);
 
@@ -152,7 +153,7 @@ public class Main {
                         if(goal instanceof SingleContainerGoal scGoal){
                             selectedHeuristic = new SingleContainerHeuristic(scGoal.getIndex(), scGoal.getDesiredVolume());
                         } else {
-                            System.out.println("Warning: Goal is not compatible with Single Container Heuristic. Using default instead.");
+                            System.out.println("Warning: Goal is not compatible with Single model.Container heuristics.Heuristic. Using default instead.");
                         }
                     }
                     case 3 -> {
@@ -366,16 +367,16 @@ public class Main {
 
     private static void exportToFile(List<Transfer> result, int[] startVol, int[] capacity) {
         try (PrintWriter out = new PrintWriter("transfer_log.txt")){
-            out.println("Initial State: " + Arrays.toString(startVol));
+            out.println("Initial model.State: " + Arrays.toString(startVol));
             int[] volumes = startVol.clone();
             int step = 1;
             for(Transfer t : result){
                 out.println("Step: " + step++ + ": " + t);
                 volumes[t.getFromContainer()] -= t.getAmount();
                 volumes[t.getToContainer()] += t.getAmount();
-                out.println("State: " + Arrays.toString(volumes));
+                out.println("model.State: " + Arrays.toString(volumes));
             }
-            System.out.println("Transfer log saved to transfer_log.txt");
+            System.out.println("model.Transfer log saved to transfer_log.txt");
         } catch (IOException e){
             System.out.println("Failed to write to file: " + e.getMessage());
         }

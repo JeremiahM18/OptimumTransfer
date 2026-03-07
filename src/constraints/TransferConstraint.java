@@ -1,5 +1,9 @@
+package constraints;
+
+import model.State;
+
 /**
- * TransferConstraint
+ * constraints.TransferConstraint
  *
  * Author: Jeremiah McDonald
  * Date: 29 April 2025
@@ -14,7 +18,7 @@ public interface TransferConstraint {
     /**
      * Determines whether a transfer is allowed under the current constraint.
      *
-     * @param state The current State before the transfer.
+     * @param state The current model.State before the transfer.
      * @param from Index of the source container.
      * @param to Index of the target container.
      * @param amount Amount of volume being transferred.

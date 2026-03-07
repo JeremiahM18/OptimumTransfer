@@ -1,5 +1,9 @@
+package heuristics;
+
+import model.State;
+
 /**
- * ZeroHeuristic
+ * heuristics.ZeroHeuristic
  *
  * Author: Jeremiah McDonald
  * Date: 3 May 2025
@@ -8,7 +12,7 @@
  * Dijkstra's Algorithm
  */
 
-public class ZeroHeuristic implements Heuristic{
+public class ZeroHeuristic implements Heuristic {
     @Override
     public int estimate(State state){
         return 0;

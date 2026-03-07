@@ -1,11 +1,15 @@
+package heuristics;
+
+import model.State;
+
 /**
- * EvenDistributionHeuristic
+ * heuristics.EvenDistributionHeuristic
  *
  * Author: Jeremiah McDonald
  * Date: 3 May 2025
  *
  * Description:
- * Heuristic that estimates to an even distribution among all containers.
+ * heuristics.Heuristic that estimates to an even distribution among all containers.
  * Returns the total imbalance compared to the average.
  */
 

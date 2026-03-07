@@ -1,5 +1,9 @@
+package goals;
+
+import model.State;
+
 /**
- * SingleContainerGoal
+ * goals.SingleContainerGoal
  *
  * Author: Jeremiah McDonald
  * Date: 29 April 2025
@@ -9,12 +13,12 @@
  */
 
 
-public class SingleContainerGoal implements GoalCondition{
+public class SingleContainerGoal implements GoalCondition {
     private final int containerIndex;
     private final int desiredVolume;
 
     /**
-     * Constructs a SingleContainerGoal
+     * Constructs a goals.SingleContainerGoal
      *
      * @param conIndex The index of the container to check.
      * @param desiredVol The required volume for that container.
