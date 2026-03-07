@@ -1,4 +1,4 @@
-# model.Container model.Transfer Optimization System
+# Container Transfer Optimization System
 
 A configurable Java optimization engine for solving constrained container transfer problems using A* search.
 
@@ -16,7 +16,7 @@ constraints, multiple search modes, and step-by-step visualization.
   - Custom lambda-style goals
   - Advanced expression-based goals
 - Pluggable heuristics
-- model.Transfer constraints
+- Transfer constraints
 - Find the shortest solution or enumerate all valid solutions
 - Console-based visualization
 - Swing GUI visualization
@@ -53,6 +53,7 @@ Given a set of containers with user-defined capacities and starting volumes, the
    - solving strategy
 
 ## Example Output
+_To be added_
 
 ## Visualization
 The project supports:
@@ -60,8 +61,8 @@ The project supports:
 - Swing GUI playback of the selected solution
 
 ## Future Improvements
-- package-based source organization
 - unit tests
 - benchmark mode
 - richer GUI visualization
 - configurable move cost models
+- configuration-file input mode

@@ -1,5 +1,8 @@
 package search;
 
+import model.State;
+import model.Transfer;
+
 import java.util.List;
 
 /**

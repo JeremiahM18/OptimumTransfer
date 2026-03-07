@@ -1,7 +1,7 @@
 package model;
 
 /**
- * model.MoveResult
+ * MoveResult
  *
  * Author: Jeremiah McDonald
  * Date: 29 April 2025
@@ -21,7 +21,7 @@ public class MoveResult {
      * @param st The new model.State after performing the transfer.
      * @param act The model.Transfer action that led to the new state.
      */
-    MoveResult(State st, Transfer act) {
+    public MoveResult(State st, Transfer act) {
         newState = st;
         action = act;
     }
@@ -30,6 +30,7 @@ public class MoveResult {
      * Returns the new model.State resulting from the transfer
      */
     public State getNewState() {
+
         return newState;
     }
 
@@ -37,6 +38,7 @@ public class MoveResult {
      * Returns the model.Transfer action that caused the new model.State
      */
     public Transfer getAction() {
+
         return action;
     }
 }
