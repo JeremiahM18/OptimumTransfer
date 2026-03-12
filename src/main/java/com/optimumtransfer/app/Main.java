@@ -57,7 +57,7 @@ public class Main {
             int[] capacities = readCapacities(sc, numContainers);
             int[] startVolumes = readStartVolumes(sc, capacities);
             GoalCondition goal = readGoal(sc, numContainers, capacities);
-            Heuristic heuristic = readHeuristic(sc, goal, numContainers, capacities);
+            Heuristic heuristic = readHeuristic(sc, goal, capacities);
             List<TransferConstraint> constraints = readConstraints(sc, numContainers);
             SolverRequest request = buildRequest(sc, capacities, startVolumes, goal, heuristic, constraints);
             SolverResult result = solverService.solve(request);
@@ -125,21 +125,25 @@ public class Main {
             int choice = getValidInt(sc, "", 1, 5);
 
             switch (choice) {
-                case 1 -> {
+                case 1:
                     System.out.println("\nEnter the target volumes for each container:");
                     for (int i = 0; i < numContainers; i++) {
                         goalVolumes[i] = getValidInt(sc, "Target volume for container " + i + ": ", 0, capacities[i]);
                     }
                     goal = new ExactMatchGoal(goalVolumes);
-                }
-                case 2 -> {
+                    break;
+                case 2:
                     int index = getValidInt(sc, "Enter container index to target: ", 0, numContainers - 1);
                     int volume = getValidInt(sc, "Enter desired volume for container " + index + ": ", 0, capacities[index]);
                     goal = new SingleContainerGoal(index, volume);
-                }
-                case 3 -> goal = new EvenDistributionGoal();
-                case 4 -> goal = readCustomGoal(sc, numContainers, capacities);
-                case 5 -> {
+                    break;
+                case 3:
+                    goal = new EvenDistributionGoal();
+                    break;
+                case 4:
+                    goal = readCustomGoal(sc, numContainers, capacities);
+                    break;
+                case 5:
                     sc.nextLine();
                     System.out.println("\nEnter custom goal expression:");
                     String expr = sc.nextLine();
@@ -148,9 +152,9 @@ public class Main {
                     } catch (IllegalArgumentException e) {
                         System.out.println("Invalid expression: " + e.getMessage());
                     }
-                }
-                default -> {
-                }
+                    break;
+                default:
+                    break;
             }
 
             if (goal == null) {
@@ -169,27 +173,25 @@ public class Main {
 
         int customType = getValidInt(sc, "Enter custom goal type: ", 1, 3);
 
-        return switch (customType) {
-            case 1 -> {
-                int total = getValidInt(sc, "Enter total volume required: ", 0, Integer.MAX_VALUE);
-                yield state -> Arrays.stream(state.getVolumes()).sum() == total;
-            }
-            case 2 -> {
-                int index = getValidInt(sc, "Enter container index: ", 0, numContainers - 1);
-                int min = getValidInt(sc, "Enter minimum volume: ", 0, capacities[index]);
-                yield state -> state.getVolumes()[index] >= min;
-            }
-            case 3 -> {
-                int a = getValidInt(sc, "Enter first container index: ", 0, numContainers - 1);
-                int b = getValidInt(sc, "Enter second container index: ", 0, numContainers - 1);
-                int sum = getValidInt(sc, "Enter desired combined volume: ", 0, capacities[a] + capacities[b]);
-                yield state -> state.getVolumes()[a] + state.getVolumes()[b] == sum;
-            }
-            default -> throw new IllegalStateException("Unexpected custom goal option: " + customType);
-        };
+        switch (customType) {
+            case 1:
+                final int total = getValidInt(sc, "Enter total volume required: ", 0, Integer.MAX_VALUE);
+                return state -> Arrays.stream(state.getVolumes()).sum() == total;
+            case 2:
+                final int index = getValidInt(sc, "Enter container index: ", 0, numContainers - 1);
+                final int min = getValidInt(sc, "Enter minimum volume: ", 0, capacities[index]);
+                return state -> state.getVolumes()[index] >= min;
+            case 3:
+                final int a = getValidInt(sc, "Enter first container index: ", 0, numContainers - 1);
+                final int b = getValidInt(sc, "Enter second container index: ", 0, numContainers - 1);
+                final int sum = getValidInt(sc, "Enter desired combined volume: ", 0, capacities[a] + capacities[b]);
+                return state -> state.getVolumes()[a] + state.getVolumes()[b] == sum;
+            default:
+                throw new IllegalStateException("Unexpected custom goal option: " + customType);
+        }
     }
 
-    private Heuristic readHeuristic(Scanner sc, GoalCondition goal, int numContainers, int[] capacities) {
+    private Heuristic readHeuristic(Scanner sc, GoalCondition goal, int[] capacities) {
         Heuristic selectedHeuristic = new ZeroHeuristic();
         sc.nextLine();
 
@@ -205,16 +207,21 @@ public class Main {
 
         int choice = getValidInt(sc, "Enter heuristic strategy: ", 1, 3);
 
-        return switch (choice) {
-            case 1 -> new EvenDistributionHeuristic();
-            case 2 -> buildSingleContainerHeuristic(goal, selectedHeuristic);
-            case 3 -> new TotalVolumeHeuristic(getValidInt(sc, "Enter desired total volume: ", 0, Arrays.stream(capacities).sum()));
-            default -> selectedHeuristic;
-        };
+        switch (choice) {
+            case 1:
+                return new EvenDistributionHeuristic();
+            case 2:
+                return buildSingleContainerHeuristic(goal, selectedHeuristic);
+            case 3:
+                return new TotalVolumeHeuristic(getValidInt(sc, "Enter desired total volume: ", 0, Arrays.stream(capacities).sum()));
+            default:
+                return selectedHeuristic;
+        }
     }
 
     private Heuristic buildSingleContainerHeuristic(GoalCondition goal, Heuristic fallback) {
-        if (goal instanceof SingleContainerGoal singleGoal) {
+        if (goal instanceof SingleContainerGoal) {
+            SingleContainerGoal singleGoal = (SingleContainerGoal) goal;
             return new SingleContainerHeuristic(singleGoal.getIndex(), singleGoal.getDesiredVolume());
         }
 
@@ -223,7 +230,7 @@ public class Main {
     }
 
     private List<TransferConstraint> readConstraints(Scanner sc, int numContainers) {
-        List<TransferConstraint> constraints = new ArrayList<>();
+        List<TransferConstraint> constraints = new ArrayList<TransferConstraint>();
 
         System.out.print("\nWould you like to add any constraints? (yes/no): ");
         if (!isYes(sc.nextLine())) {
@@ -242,37 +249,37 @@ public class Main {
             int option = getValidInt(sc, "Choice: ", 1, 6);
 
             switch (option) {
-                case 1 -> {
+                case 1:
                     int from = getValidInt(sc, "Enter container A index: ", 0, numContainers - 1);
                     int to = getValidInt(sc, "Enter container B index: ", 0, numContainers - 1);
                     constraints.add(TransferConstraints.blockRoute(from, to));
                     System.out.println("\nConstraint added: Block transfer from " + from + " to " + to);
-                }
-                case 2 -> {
+                    break;
+                case 2:
                     int max = getValidInt(sc, "Enter maximum transfer amount: ", 1, Integer.MAX_VALUE);
                     constraints.add(TransferConstraints.maxTransfer(max));
                     System.out.println("\nConstraint added: Max transfer amount = " + max);
-                }
-                case 3 -> {
-                    int to = getValidInt(sc, "Enter container index to block receiving: ", 0, numContainers - 1);
-                    constraints.add(TransferConstraints.blockReceiver(to));
-                    System.out.println("\nConstraint added: Block transfers to container = " + to);
-                }
-                case 4 -> {
+                    break;
+                case 3:
+                    int blockedReceiver = getValidInt(sc, "Enter container index to block receiving: ", 0, numContainers - 1);
+                    constraints.add(TransferConstraints.blockReceiver(blockedReceiver));
+                    System.out.println("\nConstraint added: Block transfers to container = " + blockedReceiver);
+                    break;
+                case 4:
                     constraints.add(TransferConstraints.onlyEvenSenders());
                     System.out.println("\nConstraint added: Only even-numbered containers can send.");
-                }
-                case 5 -> {
-                    int min = getValidInt(sc, "Enter minimum transfer amount: ", 1, Integer.MAX_VALUE);
-                    constraints.add(TransferConstraints.minTransfer(min));
-                    System.out.println("\nConstraint added: Block transfers less than " + min);
-                }
-                case 6 -> {
+                    break;
+                case 5:
+                    int minTransfer = getValidInt(sc, "Enter minimum transfer amount: ", 1, Integer.MAX_VALUE);
+                    constraints.add(TransferConstraints.minTransfer(minTransfer));
+                    System.out.println("\nConstraint added: Block transfers less than " + minTransfer);
+                    break;
+                case 6:
                     addedConstraint = false;
                     System.out.println("Done adding constraints");
-                }
-                default -> {
-                }
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -336,8 +343,7 @@ public class Main {
         if (isYes(sc.nextLine())) {
             System.out.print("Use fancy GUI? (yes/no): ");
             if (isYes(sc.nextLine())) {
-                SwingUtilities.invokeLater(() ->
-                        new TransferGUI(shortestSolution, result.getStartVolumes(), result.getCapacities()).setVisible(true));
+                SwingUtilities.invokeLater(() -> new TransferGUI(shortestSolution, result.getStartVolumes(), result.getCapacities()).setVisible(true));
             } else {
                 Visualizer.show(shortestSolution, result.getStartVolumes(), result.getCapacities());
             }

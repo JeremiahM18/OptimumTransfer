@@ -24,6 +24,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.function.IntFunction;
+import java.util.stream.Collectors;
 
 public class SolverRequestPropertiesLoader {
     private static final String CAPACITIES_KEY = "capacities";
@@ -73,34 +75,46 @@ public class SolverRequestPropertiesLoader {
 
     private GoalCondition buildGoal(Properties properties, int containerCount) {
         String goalType = readUpperCase(properties, GOAL_TYPE_KEY, DEFAULT_GOAL_TYPE);
-        return switch (goalType) {
-            case "EXACT_MATCH" -> new ExactMatchGoal(parseIntArray(required(properties, GOAL_TARGET_VOLUMES_KEY)));
-            case "SINGLE_CONTAINER" -> new SingleContainerGoal(
+        if ("EXACT_MATCH".equals(goalType)) {
+            return new ExactMatchGoal(parseIntArray(required(properties, GOAL_TARGET_VOLUMES_KEY)));
+        }
+        if ("SINGLE_CONTAINER".equals(goalType)) {
+            return new SingleContainerGoal(
                     Integer.parseInt(required(properties, GOAL_CONTAINER_INDEX_KEY)),
                     Integer.parseInt(required(properties, GOAL_DESIRED_VOLUME_KEY))
             );
-            case "EVEN_DISTRIBUTION" -> new EvenDistributionGoal();
-            case "EXPRESSION" -> SimpleGoalParser.parse(required(properties, GOAL_EXPRESSION_KEY), containerCount);
-            default -> throw new IllegalArgumentException("Unsupported goal.type: " + goalType);
-        };
+        }
+        if ("EVEN_DISTRIBUTION".equals(goalType)) {
+            return new EvenDistributionGoal();
+        }
+        if ("EXPRESSION".equals(goalType)) {
+            return SimpleGoalParser.parse(required(properties, GOAL_EXPRESSION_KEY), containerCount);
+        }
+        throw new IllegalArgumentException("Unsupported goal.type: " + goalType);
     }
 
     private Heuristic buildHeuristic(Properties properties) {
         String heuristicType = readUpperCase(properties, HEURISTIC_TYPE_KEY, DEFAULT_HEURISTIC_TYPE);
-        return switch (heuristicType) {
-            case "ZERO" -> new ZeroHeuristic();
-            case "EVEN_DISTRIBUTION" -> new EvenDistributionHeuristic();
-            case "SINGLE_CONTAINER" -> new SingleContainerHeuristic(
+        if ("ZERO".equals(heuristicType)) {
+            return new ZeroHeuristic();
+        }
+        if ("EVEN_DISTRIBUTION".equals(heuristicType)) {
+            return new EvenDistributionHeuristic();
+        }
+        if ("SINGLE_CONTAINER".equals(heuristicType)) {
+            return new SingleContainerHeuristic(
                     Integer.parseInt(required(properties, HEURISTIC_TARGET_INDEX_KEY)),
                     Integer.parseInt(required(properties, HEURISTIC_TARGET_VOLUME_KEY))
             );
-            case "TOTAL_VOLUME" -> new TotalVolumeHeuristic(Integer.parseInt(required(properties, HEURISTIC_GOAL_SUM_KEY)));
-            default -> throw new IllegalArgumentException("Unsupported heuristic.type: " + heuristicType);
-        };
+        }
+        if ("TOTAL_VOLUME".equals(heuristicType)) {
+            return new TotalVolumeHeuristic(Integer.parseInt(required(properties, HEURISTIC_GOAL_SUM_KEY)));
+        }
+        throw new IllegalArgumentException("Unsupported heuristic.type: " + heuristicType);
     }
 
     private List<TransferConstraint> buildConstraints(Properties properties) {
-        List<TransferConstraint> constraints = new ArrayList<>();
+        List<TransferConstraint> constraints = new ArrayList<TransferConstraint>();
 
         String blockRoutes = properties.getProperty(BLOCK_ROUTES_KEY, "").trim();
         if (!blockRoutes.isEmpty()) {
@@ -135,7 +149,7 @@ public class SolverRequestPropertiesLoader {
     private void addThresholdConstraint(Properties properties,
                                         String key,
                                         List<TransferConstraint> constraints,
-                                        java.util.function.IntFunction<TransferConstraint> factory) {
+                                        IntFunction<TransferConstraint> factory) {
         String value = properties.getProperty(key);
         if (value != null && !value.isBlank()) {
             constraints.add(factory.apply(Integer.parseInt(value.trim())));
@@ -154,7 +168,7 @@ public class SolverRequestPropertiesLoader {
         return Arrays.stream(value.split(","))
                 .map(String::trim)
                 .filter(token -> !token.isEmpty())
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private String required(Properties properties, String key) {

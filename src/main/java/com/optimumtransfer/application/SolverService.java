@@ -11,17 +11,13 @@ public class SolverService {
         AStar solver = new AStar(request.getCapacities(), request.getConstraints(), request.getHeuristic());
         State start = new State(request.getStartVolumes());
 
-        return switch (request.getSolveMode()) {
-            case SHORTEST_PATH -> buildShortestResult(request, solver, start);
-            case ALL_SOLUTIONS_WITH_DEPTH -> buildAllSolutionsResult(
-                    request,
-                    solver.findAllSolutions(start, request.getGoal(), request.getMaxDepth())
-            );
-            case ALL_SOLUTIONS_UNBOUNDED -> buildAllSolutionsResult(
-                    request,
-                    solver.findAllPaths(start, request.getGoal())
-            );
-        };
+        if (request.getSolveMode() == SolveMode.SHORTEST_PATH) {
+            return buildShortestResult(request, solver, start);
+        }
+        if (request.getSolveMode() == SolveMode.ALL_SOLUTIONS_WITH_DEPTH) {
+            return buildAllSolutionsResult(request, solver.findAllSolutions(start, request.getGoal(), request.getMaxDepth()));
+        }
+        return buildAllSolutionsResult(request, solver.findAllPaths(start, request.getGoal()));
     }
 
     private SolverResult buildShortestResult(SolverRequest request, AStar solver, State start) {
