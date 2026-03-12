@@ -2,7 +2,9 @@ package goals;
 
 import model.State;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * goals.SimpleGoalParser
@@ -25,21 +27,20 @@ public class SimpleGoalParser {
      * @return A goals.GoalCondition representing the parsed expression.
      */
     public static GoalCondition parse(String expr, int numContainers){
-        expr = expr.replaceAll("\\s+", ""); // Remove all spaces
+        expr = expr.replaceAll("\\s+", "");
 
         if(expr.contains("&&")){
-
             String[] parts = expr.split("&&");
-            GoalCondition left = parseSingle(parts[0], numContainers);
-            GoalCondition right = parseSingle(parts[1], numContainers);
-            return state -> left.isSatisfied(state) && right.isSatisfied(state);
-        } else {
-            // Single condition
-            return parseSingle(expr, numContainers);
+            List<GoalCondition> conditions = new ArrayList<>();
+            for (String part : parts) {
+                conditions.add(parseSingle(part, numContainers));
+            }
+            return state -> conditions.stream().allMatch(condition -> condition.isSatisfied(state));
         }
+
+        return parseSingle(expr, numContainers);
     }
 
-    // Handles parsing a single condition
     private static GoalCondition parseSingle(String expr, int numContainers){
         String[] operatiors = {"==", ">=", "<="};
         String selecedOp = null;
@@ -83,14 +84,12 @@ public class SimpleGoalParser {
         };
     }
 
-    // Evaluates one side of the expression
     private static int evaluateSide(String side, State state, int numContainers){
         if(side.equals("sum")){
             return Arrays.stream(state.getVolumes()).sum();
         }
 
         int result = 0;
-        // Split keeping plus or minus as token
         String[] tokens = side.split("(?=[+-])");
 
         for(String token : tokens){

@@ -1,8 +1,8 @@
 $ErrorActionPreference = "Stop"
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
+$mainSource = Join-Path $projectRoot "src/main/java"
 $testSource = Join-Path $projectRoot "src/test/java"
-$mainOutput = Join-Path $projectRoot "build/classes/main"
 $testOutput = Join-Path $projectRoot "build/classes/test"
 
 & (Join-Path $PSScriptRoot "compile.ps1")
@@ -14,6 +14,7 @@ if (-not (Test-Path $testSource)) {
 
 New-Item -ItemType Directory -Force -Path $testOutput | Out-Null
 
+$mainFiles = Get-ChildItem -Path $mainSource -Recurse -Filter *.java | ForEach-Object { $_.FullName }
 $testFiles = Get-ChildItem -Path $testSource -Recurse -Filter *.java | ForEach-Object { $_.FullName }
 
 if ($testFiles.Count -eq 0) {
@@ -21,5 +22,6 @@ if ($testFiles.Count -eq 0) {
     exit 0
 }
 
-javac -cp $mainOutput -d $testOutput $testFiles
-java -cp "$mainOutput;$testOutput" tests.TestRunner
+$allFiles = @($mainFiles) + @($testFiles)
+javac -d $testOutput $allFiles
+java -cp $testOutput tests.TestRunner

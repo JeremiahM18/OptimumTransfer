@@ -8,13 +8,13 @@ import model.State;
 import model.Transfer;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.HashSet;
 
 /**
  * Search.AStar
@@ -61,14 +61,18 @@ public class AStar {
      */
     public List<Transfer> solve(State start, GoalCondition goal){
         PriorityQueue<Node> frontier = new PriorityQueue<>(Comparator.comparingInt(n -> n.getCost() + heuristic.estimate(n.getState())));
-        Set<State> visited = new HashSet<>();
+        Map<State, Integer> bestCosts = new HashMap<>();
 
         frontier.add(new Node(start, new ArrayList<>(), 0));
-        visited.add(start);
+        bestCosts.put(start, 0);
 
         while(!frontier.isEmpty()){
             Node current = frontier.poll();
             State currentState = current.getState();
+
+            if(current.getCost() > bestCosts.getOrDefault(currentState, Integer.MAX_VALUE)) {
+                continue;
+            }
 
             if(goal.isSatisfied(currentState)){
                 return current.getPath();
@@ -78,20 +82,19 @@ public class AStar {
                 State nextState = neighbor.getNewState();
                 Transfer action = neighbor.getAction();
 
-                if(!visited.contains(nextState)){
-                    visited.add(nextState);
+                List<Transfer> newPath = new ArrayList<>(current.getPath());
+                newPath.add(action);
 
-                    List<Transfer> newPath = new ArrayList<>(current.getPath());
-                    newPath.add(action);
+                int newCost = current.getCost() + action.getWeight();
+                int bestKnownCost = bestCosts.getOrDefault(nextState, Integer.MAX_VALUE);
 
-                    int newCost = current.getCost() + action.getWeight();
-
+                if(newCost < bestKnownCost){
+                    bestCosts.put(nextState, newCost);
                     frontier.add(new Node(nextState, newPath, newCost));
                 }
             }
         }
 
-        // No solution found
         return null;
     }
 
@@ -121,17 +124,12 @@ public class AStar {
                         }
 
                         if (allowed) {
-
-
                             int[] newVolumes = volumes.clone();
                             newVolumes[i] -= transferAmount;
                             newVolumes[j] += transferAmount;
 
                             State newState = new State(newVolumes);
-
-                            int weight = transferAmount;
-
-                            Transfer transfer = new Transfer(i, j, transferAmount, weight);
+                            Transfer transfer = new Transfer(i, j, transferAmount, transferAmount);
                             results.add(new MoveResult(newState, transfer));
                         }
                     }
@@ -152,38 +150,39 @@ public class AStar {
      */
     public List<List<Transfer>> findAllSolutions(State start, GoalCondition goal, int maxDepth){
         List<List<Transfer>> allSolutions = new ArrayList<>();
-        Queue<Node> queue = new LinkedList<>();
-        Set<State> visited = new HashSet<>();
+        Set<State> pathStates = new HashSet<>();
+        pathStates.add(start);
 
-        queue.add(new Node(start, new ArrayList<>(), 0));
-        visited.add(start);
+        collectSolutions(start, goal, maxDepth, new ArrayList<>(), pathStates, allSolutions);
+        return allSolutions;
+    }
 
-        while(!queue.isEmpty()){
-            Node current = queue.poll();
+    private void collectSolutions(State current,
+                                  GoalCondition goal,
+                                  int maxDepth,
+                                  List<Transfer> path,
+                                  Set<State> pathStates,
+                                  List<List<Transfer>> allSolutions) {
+        if(goal.isSatisfied(current)) {
+            allSolutions.add(new ArrayList<>(path));
+        }
 
-            if(goal.isSatisfied(current.getState())){
-                allSolutions.add(current.getPath());
-            }
+        if(path.size() >= maxDepth) {
+            return;
+        }
 
-            if(current.getPath().size() >= maxDepth){
+        for (MoveResult next : generateNextStates(current)) {
+            State nextState = next.getNewState();
+            if (pathStates.contains(nextState)) {
                 continue;
             }
 
-            for(MoveResult next : generateNextStates(current.getState())){
-                State nextState = next.getNewState();
-                Transfer action = next.getAction();
-
-                if(!visited.contains(nextState)){
-                    visited.add(nextState);
-
-                    List<Transfer> newPath = new ArrayList<>(current.getPath());
-                    newPath.add(action);
-
-                    queue.add(new Node(nextState, newPath, current.getCost() + action.getWeight()));
-                }
-            }
+            path.add(next.getAction());
+            pathStates.add(nextState);
+            collectSolutions(nextState, goal, maxDepth, path, pathStates, allSolutions);
+            pathStates.remove(nextState);
+            path.remove(path.size() - 1);
         }
-        return allSolutions;
     }
 
     /**
@@ -198,4 +197,3 @@ public class AStar {
         return findAllSolutions(start, goal, Integer.MAX_VALUE);
     }
 }
-
