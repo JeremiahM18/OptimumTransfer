@@ -12,7 +12,8 @@ public final class TestRunner {
                 new SimpleGoalParserTest(),
                 new AStarTest(),
                 new SolverServiceTest(),
-                new SolverRequestPropertiesLoaderTest()
+                new SolverRequestPropertiesLoaderTest(),
+                new GridPathSolverTest()
         );
 
         int passed = 0;
