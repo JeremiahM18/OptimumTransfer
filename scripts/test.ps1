@@ -24,4 +24,5 @@ if ($testFiles.Count -eq 0) {
 
 $allFiles = @($mainFiles) + @($testFiles)
 javac -d $testOutput $allFiles
-java -cp $testOutput tests.TestRunner
+java -cp $testOutput com.optimumtransfer.tests.TestRunner
+

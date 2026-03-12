@@ -1,0 +1,21 @@
+package com.optimumtransfer.heuristics;
+
+import com.optimumtransfer.model.State;
+
+/**
+ * heuristics.ZeroHeuristic
+ *
+ * Author: Jeremiah McDonald
+ * Date: 3 May 2025
+ *
+ * Description:
+ * Dijkstra's Algorithm
+ */
+
+public class ZeroHeuristic implements Heuristic {
+    @Override
+    public int estimate(State state){
+        return 0;
+    }
+}
+
