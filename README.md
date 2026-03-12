@@ -1,34 +1,34 @@
 # Optimum Transfer
 
-Optimum Transfer is a Java 21 search engine for solving constrained container-transfer problems. It models container volumes as immutable states and uses A* search to find valid transfer sequences that satisfy a chosen goal condition.
-
-## Why this project exists
-
-The project explores state-space search for liquid transfer puzzles and related optimization problems. It supports configurable goal conditions, optional heuristics, transfer constraints, console playback, and a Swing-based visualization mode.
+Optimum Transfer is a Java 21 search engine for solving constrained container-transfer problems. It models container volumes as immutable states, uses A* search to find valid transfer sequences, and now supports both interactive and configuration-driven execution.
 
 ## Current capabilities
 
 - Solve for the shortest transfer sequence with A* search
-- Enumerate valid solutions up to a depth limit
+- Enumerate valid solutions up to a depth limit or without a depth cap
 - Support exact-match, single-container, even-distribution, and expression-driven goals
-- Add custom transfer constraints at runtime
+- Add transfer constraints at runtime or through configuration
+- Run through an interactive CLI or a `.properties` scenario file
 - Visualize solutions in the console or Swing UI
-- Export solution steps to `transfer_log.txt`
-- Run automated tests with the included JDK-only harness
+- Export interactive shortest-path results to `transfer_log.txt`
+- Run automated regression tests with the included JDK-only harness
 
 ## Project structure
 
 ```text
-src/main/java/app             Interactive CLI entry point
-src/main/java/constraints     Transfer rule interfaces
-src/main/java/goals           Goal-condition implementations and parser
-src/main/java/heuristics      Heuristic strategies for A*
-src/main/java/model           Core domain objects
-src/main/java/search          Search engine implementation
-src/main/java/visualization   Console and Swing visualizers
-src/test/java/tests           Automated regression tests
-scripts/compile.ps1           Local compile script
-scripts/test.ps1              Local test script
+src/main/java/com/optimumtransfer/app                 Interactive and config entry points
+src/main/java/com/optimumtransfer/application         Service-layer request/response models
+src/main/java/com/optimumtransfer/application/config  Properties-based request loading
+src/main/java/com/optimumtransfer/constraints         Transfer rule interfaces
+src/main/java/com/optimumtransfer/goals               Goal-condition implementations and parser
+src/main/java/com/optimumtransfer/heuristics          Heuristic strategies for A*
+src/main/java/com/optimumtransfer/model               Core domain objects
+src/main/java/com/optimumtransfer/search              Search engine implementation
+src/main/java/com/optimumtransfer/visualization       Console and Swing visualizers
+src/test/java/com/optimumtransfer/tests               Automated regression tests
+config/examples                                       Sample reproducible scenarios
+scripts/compile.ps1                                   Local compile script
+scripts/test.ps1                                      Local test script
 ```
 
 ## Prerequisites
@@ -50,49 +50,73 @@ Run the automated test suite:
 powershell -ExecutionPolicy Bypass -File scripts/test.ps1
 ```
 
-Run the CLI after compiling:
+## Run the interactive CLI
 
 ```powershell
-java -cp build/classes/main app.Main
+java -cp build/classes/main com.optimumtransfer.app.Main
 ```
+
+## Run a reproducible scenario file
+
+Example scenario: [config/examples/exact-match.properties](config/examples/exact-match.properties)
+
+```powershell
+java -cp build/classes/main com.optimumtransfer.app.ConfigMain config/examples/exact-match.properties
+```
+
+Supported configuration keys include:
+
+- `capacities`
+- `startVolumes`
+- `solveMode`
+- `maxDepth`
+- `goal.type`
+- `goal.targetVolumes`
+- `goal.containerIndex`
+- `goal.desiredVolume`
+- `goal.expression`
+- `heuristic.type`
+- `heuristic.targetIndex`
+- `heuristic.targetVolume`
+- `heuristic.goalSum`
+- `constraints.blockRoutes`
+- `constraints.maxTransfer`
+- `constraints.minTransfer`
+- `constraints.blockReceiving`
+- `constraints.onlyEvenSenders`
 
 ## Architecture overview
 
-- `model.State` is an immutable snapshot of container volumes.
-- `model.Transfer` describes a move and its cost.
-- `goals.GoalCondition` defines whether a state satisfies the target.
-- `heuristics.Heuristic` estimates remaining work for A*.
-- `constraints.TransferConstraint` blocks invalid or restricted moves.
-- `search.AStar` owns shortest-path search and bounded solution enumeration.
-- `visualization` contains output helpers for console and GUI playback.
+- `com.optimumtransfer.application.SolverService` is the application boundary for solving requests.
+- `com.optimumtransfer.application.SolverRequest` captures a reproducible solver run.
+- `com.optimumtransfer.model.State` is an immutable snapshot of container volumes.
+- `com.optimumtransfer.goals.GoalCondition` defines whether a state satisfies the target.
+- `com.optimumtransfer.heuristics.Heuristic` estimates remaining work for A*.
+- `com.optimumtransfer.constraints.TransferConstraint` blocks invalid or restricted moves.
+- `com.optimumtransfer.search.AStar` owns shortest-path search and bounded solution enumeration.
+- `com.optimumtransfer.visualization` contains console and GUI playback helpers.
 
 More detail is available in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Quality status
 
-The repository now includes repeatable local build and test scripts plus regression coverage for:
+The repository now includes:
 
-- model immutability and validation
-- expression parsing behavior
-- constrained solving behavior
-- distinct-solution enumeration
+- standard namespaced packages
+- repeatable local build and test scripts
+- regression coverage for model rules, parser behavior, search behavior, service orchestration, and config loading
+- CI for compile-and-test validation
+- team-facing contribution and architecture docs
 
 ## Enterprise-level next steps
 
-The biggest gaps between the current codebase and a production-ready internal tool are documented in [docs/ENTERPRISE_ROADMAP.md](docs/ENTERPRISE_ROADMAP.md). The short version is:
+The highest-value follow-ups from here are:
 
-- introduce configuration-driven execution instead of interactive-only CLI input
-- adopt package namespacing such as `com.optimumtransfer.*`
-- add standardized logging, metrics, and error reporting
-- separate the solver engine from UI concerns more aggressively
-- add CI quality gates and contribution standards
-
-## Known limitations
-
-- The application is currently driven through an interactive console flow.
-- There is no packaged distribution artifact yet.
-- GUI coverage is still manual.
-- The custom test harness is intentionally lightweight and JDK-only.
+- formalize logging and solver metrics instead of console-only output
+- separate visualization and export behind adapter interfaces
+- add packaged releases and versioning conventions
+- expand scenario coverage for CLI and GUI flows
+- consider a standard dependency/build tool when the environment allows it
 
 ## License
 

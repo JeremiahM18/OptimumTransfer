@@ -11,7 +11,8 @@ public final class TestRunner {
                 new ModelTest(),
                 new SimpleGoalParserTest(),
                 new AStarTest(),
-                new SolverServiceTest()
+                new SolverServiceTest(),
+                new SolverRequestPropertiesLoaderTest()
         );
 
         int passed = 0;
