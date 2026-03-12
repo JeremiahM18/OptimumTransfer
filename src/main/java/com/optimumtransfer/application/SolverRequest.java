@@ -9,6 +9,7 @@ import java.util.Objects;
 
 public class SolverRequest {
     public static final int UNBOUNDED_DEPTH = Integer.MAX_VALUE;
+    public static final int DEFAULT_MAX_SOLUTIONS = 1000;
 
     private final int[] capacities;
     private final int[] startVolumes;
@@ -17,6 +18,7 @@ public class SolverRequest {
     private final Heuristic heuristic;
     private final SolveMode solveMode;
     private final int maxDepth;
+    private final int maxSolutions;
 
     public SolverRequest(int[] capacities,
                          int[] startVolumes,
@@ -25,6 +27,17 @@ public class SolverRequest {
                          Heuristic heuristic,
                          SolveMode solveMode,
                          int maxDepth) {
+        this(capacities, startVolumes, goal, constraints, heuristic, solveMode, maxDepth, DEFAULT_MAX_SOLUTIONS);
+    }
+
+    public SolverRequest(int[] capacities,
+                         int[] startVolumes,
+                         GoalCondition goal,
+                         List<TransferConstraint> constraints,
+                         Heuristic heuristic,
+                         SolveMode solveMode,
+                         int maxDepth,
+                         int maxSolutions) {
         this.capacities = requireArray(capacities, "capacities");
         this.startVolumes = requireArray(startVolumes, "startVolumes");
         this.goal = Objects.requireNonNull(goal, "goal cannot be null");
@@ -32,6 +45,7 @@ public class SolverRequest {
         this.heuristic = Objects.requireNonNull(heuristic, "heuristic cannot be null");
         this.solveMode = Objects.requireNonNull(solveMode, "solveMode cannot be null");
         this.maxDepth = validateMaxDepth(maxDepth);
+        this.maxSolutions = validateMaxSolutions(maxSolutions);
 
         if (this.capacities.length != this.startVolumes.length) {
             throw new IllegalArgumentException("capacities and startVolumes must have the same length.");
@@ -66,6 +80,10 @@ public class SolverRequest {
         return maxDepth;
     }
 
+    public int getMaxSolutions() {
+        return maxSolutions;
+    }
+
     private static int[] requireArray(int[] values, String name) {
         Objects.requireNonNull(values, name + " cannot be null");
         return values.clone();
@@ -76,5 +94,12 @@ public class SolverRequest {
             throw new IllegalArgumentException("maxDepth must be positive or UNBOUNDED_DEPTH.");
         }
         return maxDepth;
+    }
+
+    private static int validateMaxSolutions(int maxSolutions) {
+        if (maxSolutions <= 0) {
+            throw new IllegalArgumentException("maxSolutions must be positive.");
+        }
+        return maxSolutions;
     }
 }

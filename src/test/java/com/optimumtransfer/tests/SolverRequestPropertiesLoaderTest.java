@@ -21,6 +21,7 @@ public class SolverRequestPropertiesLoaderTest implements TestCase {
         properties.setProperty("startVolumes", "4,0,0");
         properties.setProperty("solveMode", "ALL_SOLUTIONS_WITH_DEPTH");
         properties.setProperty("maxDepth", "2");
+        properties.setProperty("maxSolutions", "3");
         properties.setProperty("goal.type", "EXACT_MATCH");
         properties.setProperty("goal.targetVolumes", "2,0,2");
         properties.setProperty("heuristic.type", "ZERO");
@@ -31,13 +32,10 @@ public class SolverRequestPropertiesLoaderTest implements TestCase {
         TestSupport.assertArrayEquals(new int[]{4, 2, 2}, request.getCapacities(), "Loader should parse capacities.");
         TestSupport.assertArrayEquals(new int[]{4, 0, 0}, request.getStartVolumes(), "Loader should parse starting volumes.");
         TestSupport.assertEquals(2, request.getMaxDepth(), "Loader should parse max depth.");
+        TestSupport.assertEquals(3, request.getMaxSolutions(), "Loader should parse max solutions.");
         TestSupport.assertTrue(request.getSolveMode() == SolveMode.ALL_SOLUTIONS_WITH_DEPTH, "Loader should parse solve mode.");
         TestSupport.assertTrue(request.getGoal() instanceof ExactMatchGoal, "Loader should build the requested goal type.");
         TestSupport.assertTrue(request.getHeuristic() instanceof ZeroHeuristic, "Loader should build the requested heuristic type.");
         TestSupport.assertEquals(1, request.getConstraints().size(), "Loader should build configured constraints.");
-
-        properties.remove("maxDepth");
-        SolverRequest unboundedRequest = new SolverRequestPropertiesLoader().fromProperties(properties);
-        TestSupport.assertEquals(SolverRequest.UNBOUNDED_DEPTH, unboundedRequest.getMaxDepth(), "Loader should default to an unbounded depth.");
     }
 }

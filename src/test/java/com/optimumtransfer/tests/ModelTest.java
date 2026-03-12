@@ -50,8 +50,12 @@ public class ModelTest implements TestCase {
                 SolverRequest.UNBOUNDED_DEPTH
         );
         TestSupport.assertEquals(SolverRequest.UNBOUNDED_DEPTH, request.getMaxDepth(), "SolverRequest should expose the shared unbounded depth constant.");
+        TestSupport.assertEquals(SolverRequest.DEFAULT_MAX_SOLUTIONS, request.getMaxSolutions(), "SolverRequest should expose the default solution limit.");
         TestSupport.assertThrows(IllegalArgumentException.class,
                 () -> new SolverRequest(new int[]{4, 2}, new int[]{4}, targetState -> true, List.of(), ignored -> 0, SolveMode.SHORTEST_PATH, 1),
                 "SolverRequest should reject mismatched capacities and start volumes.");
+        TestSupport.assertThrows(IllegalArgumentException.class,
+                () -> new SolverRequest(new int[]{4, 2}, new int[]{4, 0}, targetState -> true, List.of(), ignored -> 0, SolveMode.SHORTEST_PATH, 1, 0),
+                "SolverRequest should reject non-positive maxSolutions.");
     }
 }

@@ -32,6 +32,7 @@ public class SolverRequestPropertiesLoader {
     private static final String START_VOLUMES_KEY = "startVolumes";
     private static final String SOLVE_MODE_KEY = "solveMode";
     private static final String MAX_DEPTH_KEY = "maxDepth";
+    private static final String MAX_SOLUTIONS_KEY = "maxSolutions";
     private static final String GOAL_TYPE_KEY = "goal.type";
     private static final String GOAL_TARGET_VOLUMES_KEY = "goal.targetVolumes";
     private static final String GOAL_CONTAINER_INDEX_KEY = "goal.containerIndex";
@@ -69,8 +70,9 @@ public class SolverRequestPropertiesLoader {
         List<TransferConstraint> constraints = buildConstraints(properties);
         SolveMode solveMode = SolveMode.valueOf(readUpperCase(properties, SOLVE_MODE_KEY, SolveMode.SHORTEST_PATH.name()));
         int maxDepth = Integer.parseInt(properties.getProperty(MAX_DEPTH_KEY, String.valueOf(SolverRequest.UNBOUNDED_DEPTH)).trim());
+        int maxSolutions = Integer.parseInt(properties.getProperty(MAX_SOLUTIONS_KEY, String.valueOf(SolverRequest.DEFAULT_MAX_SOLUTIONS)).trim());
 
-        return new SolverRequest(capacities, startVolumes, goal, constraints, heuristic, solveMode, maxDepth);
+        return new SolverRequest(capacities, startVolumes, goal, constraints, heuristic, solveMode, maxDepth, maxSolutions);
     }
 
     private GoalCondition buildGoal(Properties properties, int containerCount) {

@@ -16,16 +16,6 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-/**
- * Search.AStar
- *
- * Author: Jeremiah McDonald
- * Date: 29 April 2025
- *
- * Description:
- * Implements the A* search algorithm to solve the container transfer optimization problem.
- * Searches for the shortest sequence of transfers to reach the target container volumes.
- */
 public class AStar {
     private static final Heuristic ZERO_HEURISTIC = state -> 0;
     private static final int UNREACHABLE_COST = Integer.MAX_VALUE;
@@ -34,11 +24,6 @@ public class AStar {
     private final List<TransferConstraint> constraints;
     private final Heuristic heuristic;
 
-    /**
-     * Constructs the Search.AStar solver with container capacities.
-     *
-     * @param capacity The maximum volume of each container.
-     */
     public AStar(int[] capacity) {
         this(capacity, List.of(), ZERO_HEURISTIC);
     }
@@ -53,13 +38,6 @@ public class AStar {
         heuristic = heur;
     }
 
-    /**
-     * Solves the container transfer problem using A* search.
-     *
-     * @param start The starting model.State.
-     * @param goal The target container volumes.
-     * @return A list of Transfers to reach the goal, or null if no solution exists.
-     */
     public List<Transfer> solve(State start, GoalCondition goal) {
         PriorityQueue<Node> frontier = new PriorityQueue<>(Comparator.comparingInt(this::score));
         Map<State, Integer> bestCosts = new HashMap<>();
@@ -97,12 +75,6 @@ public class AStar {
         return null;
     }
 
-    /**
-     * Generates all valid next states from the current state by trying all possible transfers.
-     *
-     * @param current The current state.
-     * @return A list of model.MoveResult objects representing all possible next moves.
-     */
     private List<MoveResult> generateNextStates(State current) {
         List<MoveResult> results = new ArrayList<>();
         int[] volumes = current.getVolumes();
@@ -131,31 +103,35 @@ public class AStar {
         return results;
     }
 
-    /**
-     * Finds all valid paths from start to goal within a given max depth.
-     *
-     * @param start The starting state.
-     * @param goal The goal condition to satisfy.
-     * @param maxDepth The maximum number of steps to allow.
-     * @return A list of all valid transfer paths (each as a list of Transfers).
-     */
     public List<List<Transfer>> findAllSolutions(State start, GoalCondition goal, int maxDepth) {
+        return findAllSolutions(start, goal, maxDepth, Integer.MAX_VALUE);
+    }
+
+    public List<List<Transfer>> findAllSolutions(State start, GoalCondition goal, int maxDepth, int maxSolutions) {
         List<List<Transfer>> allSolutions = new ArrayList<>();
         Set<State> pathStates = new HashSet<>();
         pathStates.add(start);
 
-        collectSolutions(start, goal, maxDepth, new ArrayList<>(), pathStates, allSolutions);
+        collectSolutions(start, goal, maxDepth, maxSolutions, new ArrayList<>(), pathStates, allSolutions);
         return allSolutions;
     }
 
     private void collectSolutions(State current,
                                   GoalCondition goal,
                                   int maxDepth,
+                                  int maxSolutions,
                                   List<Transfer> path,
                                   Set<State> pathStates,
                                   List<List<Transfer>> allSolutions) {
+        if (allSolutions.size() >= maxSolutions) {
+            return;
+        }
+
         if (goal.isSatisfied(current)) {
             allSolutions.add(new ArrayList<>(path));
+            if (allSolutions.size() >= maxSolutions) {
+                return;
+            }
         }
 
         if (path.size() >= maxDepth) {
@@ -163,6 +139,10 @@ public class AStar {
         }
 
         for (MoveResult next : generateNextStates(current)) {
+            if (allSolutions.size() >= maxSolutions) {
+                return;
+            }
+
             State nextState = next.getNewState();
             if (pathStates.contains(nextState)) {
                 continue;
@@ -170,22 +150,18 @@ public class AStar {
 
             path.add(next.getAction());
             pathStates.add(nextState);
-            collectSolutions(nextState, goal, maxDepth, path, pathStates, allSolutions);
+            collectSolutions(nextState, goal, maxDepth, maxSolutions, path, pathStates, allSolutions);
             pathStates.remove(nextState);
             path.remove(path.size() - 1);
         }
     }
 
-    /**
-     * Finds all valid paths from the start to a goal state without any depth limit.
-     * Output over 50 will show total count only.
-     *
-     * @param start The starting state.
-     * @param goal The goal condition
-     * @return All valid paths as lists of Transfers.
-     */
     public List<List<Transfer>> findAllPaths(State start, GoalCondition goal) {
-        return findAllSolutions(start, goal, Integer.MAX_VALUE);
+        return findAllPaths(start, goal, Integer.MAX_VALUE);
+    }
+
+    public List<List<Transfer>> findAllPaths(State start, GoalCondition goal, int maxSolutions) {
+        return findAllSolutions(start, goal, Integer.MAX_VALUE, maxSolutions);
     }
 
     private int score(Node node) {

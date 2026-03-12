@@ -47,5 +47,19 @@ public class SolverServiceTest implements TestCase {
 
         SolverResult enumerationResult = service.solve(enumerationRequest);
         TestSupport.assertEquals(2, enumerationResult.getAllSolutions().size(), "Enumeration mode should return distinct solutions through the service layer.");
+
+        SolverRequest limitedEnumerationRequest = new SolverRequest(
+                new int[]{4, 2, 2},
+                new int[]{4, 0, 0},
+                goal,
+                List.of(),
+                new ZeroHeuristic(),
+                SolveMode.ALL_SOLUTIONS_UNBOUNDED,
+                SolverRequest.UNBOUNDED_DEPTH,
+                1
+        );
+
+        SolverResult limitedEnumerationResult = service.solve(limitedEnumerationRequest);
+        TestSupport.assertEquals(1, limitedEnumerationResult.getAllSolutions().size(), "Enumeration mode should respect the configured solution cap.");
     }
 }

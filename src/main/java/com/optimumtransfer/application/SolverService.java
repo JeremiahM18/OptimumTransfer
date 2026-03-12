@@ -15,9 +15,10 @@ public class SolverService {
             return buildShortestResult(request, solver, start);
         }
         if (request.getSolveMode() == SolveMode.ALL_SOLUTIONS_WITH_DEPTH) {
-            return buildAllSolutionsResult(request, solver.findAllSolutions(start, request.getGoal(), request.getMaxDepth()));
+            return buildAllSolutionsResult(request,
+                    solver.findAllSolutions(start, request.getGoal(), request.getMaxDepth(), request.getMaxSolutions()));
         }
-        return buildAllSolutionsResult(request, solver.findAllPaths(start, request.getGoal()));
+        return buildAllSolutionsResult(request, solver.findAllPaths(start, request.getGoal(), request.getMaxSolutions()));
     }
 
     private SolverResult buildShortestResult(SolverRequest request, AStar solver, State start) {
