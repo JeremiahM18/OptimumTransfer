@@ -5,6 +5,7 @@ import com.optimumtransfer.application.SolverRequest;
 import com.optimumtransfer.application.SolverResult;
 import com.optimumtransfer.application.SolverService;
 import com.optimumtransfer.constraints.TransferConstraint;
+import com.optimumtransfer.constraints.TransferConstraints;
 import com.optimumtransfer.goals.EvenDistributionGoal;
 import com.optimumtransfer.goals.ExactMatchGoal;
 import com.optimumtransfer.goals.GoalCondition;
@@ -22,13 +23,19 @@ import com.optimumtransfer.visualization.Visualizer;
 import javax.swing.SwingUtilities;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class Main {
+    private static final String YES = "yes";
+    private static final int DISPLAY_LIMIT = 50;
+    private static final Path TRANSFER_LOG_PATH = Path.of("transfer_log.txt");
+
     private final SolverService solverService;
 
     public Main(SolverService solverService) {
@@ -58,7 +65,7 @@ public class Main {
             handleResult(sc, result);
 
             System.out.print("\nWould you like to restart the program? (yes/no): ");
-            running = sc.nextLine().trim().equalsIgnoreCase("yes");
+            running = isYes(sc.nextLine());
             if (!running) {
                 System.out.println("Goodbye!");
             }
@@ -77,7 +84,7 @@ public class Main {
                     System.out.println("You must enter a positive number.");
                 }
             } catch (InputMismatchException e) {
-                System.out.println("Invalid input Please try again.");
+                System.out.println("Invalid input. Please try again.");
                 sc.nextLine();
             }
         }
@@ -187,43 +194,39 @@ public class Main {
         sc.nextLine();
 
         System.out.println("\nWould you like to add a heuristic? (yes/no):");
-        String useHeuristic = sc.nextLine().trim().toLowerCase();
-
-        if (useHeuristic.equals("yes")) {
-            System.out.println("\nSelect a heuristic strategy:");
-            System.out.println("1. Even Distribution Heuristic");
-            System.out.println("2. Single Container Heuristic (for use with goal type 2)");
-            System.out.println("3. Total Volume Heuristic");
-
-            int choice = getValidInt(sc, "Enter heuristic strategy: ", 1, 3);
-
-            switch (choice) {
-                case 1 -> selectedHeuristic = new EvenDistributionHeuristic();
-                case 2 -> {
-                    if (goal instanceof SingleContainerGoal singleGoal) {
-                        selectedHeuristic = new SingleContainerHeuristic(singleGoal.getIndex(), singleGoal.getDesiredVolume());
-                    } else {
-                        System.out.println("Warning: Goal is not compatible with Single Container Heuristic. Using default instead.");
-                    }
-                }
-                case 3 -> {
-                    int goalSum = getValidInt(sc, "Enter desired total volume: ", 0, Arrays.stream(capacities).sum());
-                    selectedHeuristic = new TotalVolumeHeuristic(goalSum);
-                }
-                default -> {
-                }
-            }
+        if (!isYes(sc.nextLine())) {
+            return selectedHeuristic;
         }
 
-        return selectedHeuristic;
+        System.out.println("\nSelect a heuristic strategy:");
+        System.out.println("1. Even Distribution Heuristic");
+        System.out.println("2. Single Container Heuristic (for use with goal type 2)");
+        System.out.println("3. Total Volume Heuristic");
+
+        int choice = getValidInt(sc, "Enter heuristic strategy: ", 1, 3);
+
+        return switch (choice) {
+            case 1 -> new EvenDistributionHeuristic();
+            case 2 -> buildSingleContainerHeuristic(goal, selectedHeuristic);
+            case 3 -> new TotalVolumeHeuristic(getValidInt(sc, "Enter desired total volume: ", 0, Arrays.stream(capacities).sum()));
+            default -> selectedHeuristic;
+        };
+    }
+
+    private Heuristic buildSingleContainerHeuristic(GoalCondition goal, Heuristic fallback) {
+        if (goal instanceof SingleContainerGoal singleGoal) {
+            return new SingleContainerHeuristic(singleGoal.getIndex(), singleGoal.getDesiredVolume());
+        }
+
+        System.out.println("Warning: Goal is not compatible with Single Container Heuristic. Using default instead.");
+        return fallback;
     }
 
     private List<TransferConstraint> readConstraints(Scanner sc, int numContainers) {
         List<TransferConstraint> constraints = new ArrayList<>();
 
         System.out.print("\nWould you like to add any constraints? (yes/no): ");
-        String response = sc.nextLine().trim().toLowerCase();
-        if (!response.equals("yes")) {
+        if (!isYes(sc.nextLine())) {
             return constraints;
         }
 
@@ -242,26 +245,26 @@ public class Main {
                 case 1 -> {
                     int from = getValidInt(sc, "Enter container A index: ", 0, numContainers - 1);
                     int to = getValidInt(sc, "Enter container B index: ", 0, numContainers - 1);
-                    constraints.add((state, f, t, amt) -> !(f == from && t == to));
+                    constraints.add(TransferConstraints.blockRoute(from, to));
                     System.out.println("\nConstraint added: Block transfer from " + from + " to " + to);
                 }
                 case 2 -> {
                     int max = getValidInt(sc, "Enter maximum transfer amount: ", 1, Integer.MAX_VALUE);
-                    constraints.add((state, f, t, amt) -> amt <= max);
+                    constraints.add(TransferConstraints.maxTransfer(max));
                     System.out.println("\nConstraint added: Max transfer amount = " + max);
                 }
                 case 3 -> {
                     int to = getValidInt(sc, "Enter container index to block receiving: ", 0, numContainers - 1);
-                    constraints.add((state, f, t, amt) -> t != to);
+                    constraints.add(TransferConstraints.blockReceiver(to));
                     System.out.println("\nConstraint added: Block transfers to container = " + to);
                 }
                 case 4 -> {
-                    constraints.add((state, f, t, amt) -> f % 2 == 0);
+                    constraints.add(TransferConstraints.onlyEvenSenders());
                     System.out.println("\nConstraint added: Only even-numbered containers can send.");
                 }
                 case 5 -> {
                     int min = getValidInt(sc, "Enter minimum transfer amount: ", 1, Integer.MAX_VALUE);
-                    constraints.add((state, f, t, amt) -> amt >= min);
+                    constraints.add(TransferConstraints.minTransfer(min));
                     System.out.println("\nConstraint added: Block transfers less than " + min);
                 }
                 case 6 -> {
@@ -290,7 +293,7 @@ public class Main {
         sc.nextLine();
 
         SolveMode solveMode = SolveMode.SHORTEST_PATH;
-        int maxDepth = Integer.MAX_VALUE;
+        int maxDepth = SolverRequest.UNBOUNDED_DEPTH;
 
         if (solveChoice == 2) {
             solveMode = SolveMode.ALL_SOLUTIONS_WITH_DEPTH;
@@ -330,11 +333,9 @@ public class Main {
         }
 
         System.out.print("\nWould you like to visualize the steps? (yes/no): ");
-        String view = sc.nextLine().trim().toLowerCase();
-        if (view.equals("yes")) {
+        if (isYes(sc.nextLine())) {
             System.out.print("Use fancy GUI? (yes/no): ");
-            String guiChoice = sc.nextLine().trim().toLowerCase();
-            if (guiChoice.equals("yes")) {
+            if (isYes(sc.nextLine())) {
                 SwingUtilities.invokeLater(() ->
                         new TransferGUI(shortestSolution, result.getStartVolumes(), result.getCapacities()).setVisible(true));
             } else {
@@ -343,31 +344,24 @@ public class Main {
         }
 
         System.out.print("\nWould you like to export the steps to a file? (yes/no): ");
-        String export = sc.nextLine().trim().toLowerCase();
-        if (export.equals("yes")) {
-            exportToFile(shortestSolution, result.getStartVolumes(), result.getCapacities());
+        if (isYes(sc.nextLine())) {
+            exportToFile(shortestSolution, result.getStartVolumes());
         }
     }
 
     private static int getValidInt(Scanner sc, String message, int min, int max) {
-        int value = Integer.MIN_VALUE;
-        boolean valid = false;
-
-        while (!valid) {
+        while (true) {
             System.out.print(message);
             try {
-                value = sc.nextInt();
+                int value = sc.nextInt();
                 if (value >= min && value <= max) {
-                    valid = true;
-                } else {
-                    System.out.println("Invalid input. Please try again.");
+                    return value;
                 }
             } catch (InputMismatchException e) {
-                System.out.println("Invalid input. Please try again.");
                 sc.nextLine();
             }
+            System.out.println("Invalid input. Please try again.");
         }
-        return value;
     }
 
     private static void printAllSolutions(List<List<Transfer>> allSolutions) {
@@ -380,8 +374,8 @@ public class Main {
 
         System.out.println("\nTotal solutions: " + total);
 
-        if (total > 50) {
-            System.out.println("Too many solutions to display (>50). Showing total only.");
+        if (total > DISPLAY_LIMIT) {
+            System.out.println("Too many solutions to display (>" + DISPLAY_LIMIT + "). Showing total only.");
             return;
         }
 
@@ -396,15 +390,13 @@ public class Main {
     }
 
     private static void visualizeSolutions(Scanner sc, List<List<Transfer>> allSolutions, int[] startVol, int[] capacities) {
-        if (allSolutions.size() > 50) {
+        if (allSolutions.size() > DISPLAY_LIMIT) {
             System.out.println("Too many solutions to visualize. Showing total only.");
             return;
         }
 
         System.out.print("\nWould you like to visualize a solution? (yes/no): ");
-        String visualize = sc.nextLine().trim().toLowerCase();
-
-        if (!visualize.equals("yes")) {
+        if (!isYes(sc.nextLine())) {
             return;
         }
 
@@ -419,8 +411,7 @@ public class Main {
             List<Transfer> selectedPath = allSolutions.get(index - 1);
 
             System.out.print("Use a fancy GUI? (yes/no): ");
-            String guiChoice = sc.nextLine().trim().toLowerCase();
-            if (guiChoice.equals("yes")) {
+            if (isYes(sc.nextLine())) {
                 SwingUtilities.invokeLater(() -> new TransferGUI(selectedPath, startVol, capacities).setVisible(true));
             } else {
                 Visualizer.show(selectedPath, startVol, capacities);
@@ -436,20 +427,24 @@ public class Main {
         }
     }
 
-    private static void exportToFile(List<Transfer> result, int[] startVol, int[] capacities) {
-        try (PrintWriter out = new PrintWriter("transfer_log.txt")) {
+    private static void exportToFile(List<Transfer> result, int[] startVol) {
+        try (PrintWriter out = new PrintWriter(TRANSFER_LOG_PATH.toFile())) {
             out.println("Initial State: " + Arrays.toString(startVol));
             int[] volumes = startVol.clone();
             int step = 1;
             for (Transfer transfer : result) {
-                out.println("Step: " + step++ + ": " + transfer);
+                out.println("Step " + step++ + ": " + transfer);
                 volumes[transfer.getFromContainer()] -= transfer.getAmount();
                 volumes[transfer.getToContainer()] += transfer.getAmount();
                 out.println("State: " + Arrays.toString(volumes));
             }
-            System.out.println("Transfer log saved to transfer_log.txt");
+            System.out.println("Transfer log saved to " + TRANSFER_LOG_PATH);
         } catch (IOException e) {
             System.out.println("Failed to write to file: " + e.getMessage());
         }
+    }
+
+    private static boolean isYes(String response) {
+        return YES.equals(response.trim().toLowerCase(Locale.ROOT));
     }
 }

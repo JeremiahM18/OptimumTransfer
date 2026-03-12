@@ -2,10 +2,12 @@ package com.optimumtransfer.visualization;
 
 import com.optimumtransfer.model.Transfer;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import java.awt.BorderLayout;
+import java.awt.Font;
 import java.util.List;
 
 /**
@@ -18,19 +20,17 @@ import java.util.List;
  * A simple Swing-based GUI to visualize the shortest(fastest) solution
  * to the container transfer optimization problem.
  */
-
 public class TransferGUI extends JFrame {
-
-    private JTextArea outputArea;
+    private final JTextArea outputArea;
 
     public TransferGUI(List<Transfer> steps, int[] startVol, int[] capacity) {
-        setTitle("model.Container model.Transfer Visualization");
+        setTitle("Container Transfer Visualization");
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
         outputArea = new JTextArea();
-        outputArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        outputArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
         outputArea.setEditable(false);
 
         JScrollPane scrollPane = new JScrollPane(outputArea);
@@ -38,35 +38,34 @@ public class TransferGUI extends JFrame {
 
         JButton startButton = new JButton("Run Visualization");
         add(startButton, BorderLayout.SOUTH);
-
-        startButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                visualizeSteps(steps, startVol, capacity);
-            }
-        });
+        startButton.addActionListener(event -> visualizeSteps(steps, startVol, capacity));
     }
 
     private void visualizeSteps(List<Transfer> steps, int[] startVol, int[] capacity) {
         outputArea.setText("");
         int[] volumes = startVol.clone();
-        outputArea.append("Initial model.State: " + formatState(volumes, capacity) + "\n\n");
+        outputArea.append("Initial State: " + formatState(volumes, capacity) + "\n\n");
 
         int step = 1;
-        for(Transfer t : steps) {
-            outputArea.append("Step " + step++ + ": " + t + "\n");
-            volumes[t.getFromContainer()] -= t.getAmount();
-            volumes[t.getToContainer()] += t.getAmount();
-            outputArea.append("model.State: " + formatState(volumes, capacity) + "\n\n");
+        for (Transfer transfer : steps) {
+            outputArea.append("Step " + step++ + ": " + transfer + "\n");
+            volumes[transfer.getFromContainer()] -= transfer.getAmount();
+            volumes[transfer.getToContainer()] += transfer.getAmount();
+            outputArea.append("State: " + formatState(volumes, capacity) + "\n\n");
         }
     }
 
     private String formatState(int[] volumes, int[] capacity) {
         StringBuilder sb = new StringBuilder();
-        for(int i = 0; i < volumes.length; i++) {
-            sb.append("[C" + i + ": " + volumes[i] + "/" + capacity[i] + "] ");
+        for (int i = 0; i < volumes.length; i++) {
+            sb.append("[C")
+                    .append(i)
+                    .append(": ")
+                    .append(volumes[i])
+                    .append('/')
+                    .append(capacity[i])
+                    .append("] ");
         }
         return sb.toString().trim();
     }
 }
-

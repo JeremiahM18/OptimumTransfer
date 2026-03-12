@@ -35,5 +35,9 @@ public class SolverRequestPropertiesLoaderTest implements TestCase {
         TestSupport.assertTrue(request.getGoal() instanceof ExactMatchGoal, "Loader should build the requested goal type.");
         TestSupport.assertTrue(request.getHeuristic() instanceof ZeroHeuristic, "Loader should build the requested heuristic type.");
         TestSupport.assertEquals(1, request.getConstraints().size(), "Loader should build configured constraints.");
+
+        properties.remove("maxDepth");
+        SolverRequest unboundedRequest = new SolverRequestPropertiesLoader().fromProperties(properties);
+        TestSupport.assertEquals(SolverRequest.UNBOUNDED_DEPTH, unboundedRequest.getMaxDepth(), "Loader should default to an unbounded depth.");
     }
 }

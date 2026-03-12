@@ -10,7 +10,6 @@ package com.optimumtransfer.model;
  * Represents a single transfer operation between two containers,
  * including the source, destination, and amount transferred, and the cost (weight) of the transfer.
  */
-
 public class Transfer {
     private final int fromContainer;
     private final int toContainer;
@@ -65,8 +64,7 @@ public class Transfer {
      */
     @Override
     public String toString() {
-        return "model.Transfer " + amount + " units from container " + fromContainer + " to container " +
-                toContainer + " (Cost: " + weight + " )";
+        return "Transfer " + amount + " units from container " + fromContainer
+                + " to container " + toContainer + " (Cost: " + weight + ")";
     }
 }
-

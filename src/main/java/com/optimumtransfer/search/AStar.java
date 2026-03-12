@@ -10,11 +10,11 @@ import com.optimumtransfer.model.Transfer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.HashSet;
 
 /**
  * Search.AStar
@@ -26,8 +26,9 @@ import java.util.HashSet;
  * Implements the A* search algorithm to solve the container transfer optimization problem.
  * Searches for the shortest sequence of transfers to reach the target container volumes.
  */
-
 public class AStar {
+    private static final Heuristic ZERO_HEURISTIC = state -> 0;
+    private static final int UNREACHABLE_COST = Integer.MAX_VALUE;
 
     private final int[] capacities;
     private final List<TransferConstraint> constraints;
@@ -39,16 +40,16 @@ public class AStar {
      * @param capacity The maximum volume of each container.
      */
     public AStar(int[] capacity) {
-        this(capacity, new ArrayList<>(), state -> 0);
+        this(capacity, List.of(), ZERO_HEURISTIC);
     }
 
-    public AStar(int[] capacity, List<TransferConstraint> constList ){
-        this(capacity, constList, state -> 0);
+    public AStar(int[] capacity, List<TransferConstraint> constList) {
+        this(capacity, constList, ZERO_HEURISTIC);
     }
 
     public AStar(int[] capacity, List<TransferConstraint> constList, Heuristic heur) {
         capacities = capacity.clone();
-        constraints = new ArrayList<>(constList);
+        constraints = List.copyOf(constList);
         heuristic = heur;
     }
 
@@ -59,36 +60,34 @@ public class AStar {
      * @param goal The target container volumes.
      * @return A list of Transfers to reach the goal, or null if no solution exists.
      */
-    public List<Transfer> solve(State start, GoalCondition goal){
-        PriorityQueue<Node> frontier = new PriorityQueue<>(Comparator.comparingInt(n -> n.getCost() + heuristic.estimate(n.getState())));
+    public List<Transfer> solve(State start, GoalCondition goal) {
+        PriorityQueue<Node> frontier = new PriorityQueue<>(Comparator.comparingInt(this::score));
         Map<State, Integer> bestCosts = new HashMap<>();
 
         frontier.add(new Node(start, new ArrayList<>(), 0));
         bestCosts.put(start, 0);
 
-        while(!frontier.isEmpty()){
+        while (!frontier.isEmpty()) {
             Node current = frontier.poll();
             State currentState = current.getState();
 
-            if(current.getCost() > bestCosts.getOrDefault(currentState, Integer.MAX_VALUE)) {
+            if (current.getCost() > bestCosts.getOrDefault(currentState, UNREACHABLE_COST)) {
                 continue;
             }
 
-            if(goal.isSatisfied(currentState)){
+            if (goal.isSatisfied(currentState)) {
                 return current.getPath();
             }
 
-            for(MoveResult neighbor : generateNextStates(currentState)){
+            for (MoveResult neighbor : generateNextStates(currentState)) {
                 State nextState = neighbor.getNewState();
                 Transfer action = neighbor.getAction();
-
-                List<Transfer> newPath = new ArrayList<>(current.getPath());
-                newPath.add(action);
-
                 int newCost = current.getCost() + action.getWeight();
-                int bestKnownCost = bestCosts.getOrDefault(nextState, Integer.MAX_VALUE);
+                int bestKnownCost = bestCosts.getOrDefault(nextState, UNREACHABLE_COST);
 
-                if(newCost < bestKnownCost){
+                if (newCost < bestKnownCost) {
+                    List<Transfer> newPath = new ArrayList<>(current.getPath());
+                    newPath.add(action);
                     bestCosts.put(nextState, newCost);
                     frontier.add(new Node(nextState, newPath, newCost));
                 }
@@ -104,36 +103,28 @@ public class AStar {
      * @param current The current state.
      * @return A list of model.MoveResult objects representing all possible next moves.
      */
-    private List<MoveResult> generateNextStates(State current){
+    private List<MoveResult> generateNextStates(State current) {
         List<MoveResult> results = new ArrayList<>();
         int[] volumes = current.getVolumes();
         int numContainers = volumes.length;
 
-        for(int i = 0; i < numContainers; i++){
-            for(int j = 0; j < numContainers; j++){
-                if(i != j && volumes[i] > 0){
-                    int transferAmount = Math.min(volumes[i], capacities[j] - volumes[j]);
-                    if(transferAmount > 0) {
+        for (int from = 0; from < numContainers; from++) {
+            if (volumes[from] == 0) {
+                continue;
+            }
 
-                        boolean allowed = true;
-                        for (TransferConstraint constraint : constraints) {
-                            if (!constraint.isAllowed(current, i, j, transferAmount)) {
-                                allowed = false;
-                                break;
-                            }
-                        }
-
-                        if (allowed) {
-                            int[] newVolumes = volumes.clone();
-                            newVolumes[i] -= transferAmount;
-                            newVolumes[j] += transferAmount;
-
-                            State newState = new State(newVolumes);
-                            Transfer transfer = new Transfer(i, j, transferAmount, transferAmount);
-                            results.add(new MoveResult(newState, transfer));
-                        }
-                    }
+            for (int to = 0; to < numContainers; to++) {
+                if (from == to) {
+                    continue;
                 }
+
+                int transferAmount = Math.min(volumes[from], capacities[to] - volumes[to]);
+                if (transferAmount <= 0 || !isAllowed(current, from, to, transferAmount)) {
+                    continue;
+                }
+
+                results.add(new MoveResult(applyTransfer(volumes, from, to, transferAmount),
+                        new Transfer(from, to, transferAmount, transferAmount)));
             }
         }
 
@@ -148,7 +139,7 @@ public class AStar {
      * @param maxDepth The maximum number of steps to allow.
      * @return A list of all valid transfer paths (each as a list of Transfers).
      */
-    public List<List<Transfer>> findAllSolutions(State start, GoalCondition goal, int maxDepth){
+    public List<List<Transfer>> findAllSolutions(State start, GoalCondition goal, int maxDepth) {
         List<List<Transfer>> allSolutions = new ArrayList<>();
         Set<State> pathStates = new HashSet<>();
         pathStates.add(start);
@@ -163,11 +154,11 @@ public class AStar {
                                   List<Transfer> path,
                                   Set<State> pathStates,
                                   List<List<Transfer>> allSolutions) {
-        if(goal.isSatisfied(current)) {
+        if (goal.isSatisfied(current)) {
             allSolutions.add(new ArrayList<>(path));
         }
 
-        if(path.size() >= maxDepth) {
+        if (path.size() >= maxDepth) {
             return;
         }
 
@@ -193,8 +184,27 @@ public class AStar {
      * @param goal The goal condition
      * @return All valid paths as lists of Transfers.
      */
-    public List<List<Transfer>> findAllPaths(State start, GoalCondition goal){
+    public List<List<Transfer>> findAllPaths(State start, GoalCondition goal) {
         return findAllSolutions(start, goal, Integer.MAX_VALUE);
     }
-}
 
+    private int score(Node node) {
+        return node.getCost() + heuristic.estimate(node.getState());
+    }
+
+    private boolean isAllowed(State current, int from, int to, int transferAmount) {
+        for (TransferConstraint constraint : constraints) {
+            if (!constraint.isAllowed(current, from, to, transferAmount)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static State applyTransfer(int[] volumes, int from, int to, int transferAmount) {
+        int[] newVolumes = volumes.clone();
+        newVolumes[from] -= transferAmount;
+        newVolumes[to] += transferAmount;
+        return new State(newVolumes);
+    }
+}

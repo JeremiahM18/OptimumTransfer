@@ -28,7 +28,7 @@ public class SolverServiceTest implements TestCase {
                 List.of(),
                 new ZeroHeuristic(),
                 SolveMode.SHORTEST_PATH,
-                Integer.MAX_VALUE
+                SolverRequest.UNBOUNDED_DEPTH
         );
 
         SolverResult shortestResult = service.solve(shortestRequest);

@@ -2,8 +2,8 @@ package com.optimumtransfer.application;
 
 import com.optimumtransfer.model.Transfer;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class SolverResult {
     private final SolveMode solveMode;
@@ -17,10 +17,10 @@ public class SolverResult {
                         int[] startVolumes,
                         List<Transfer> shortestSolution,
                         List<List<Transfer>> allSolutions) {
-        this.solveMode = solveMode;
-        this.capacities = capacities.clone();
-        this.startVolumes = startVolumes.clone();
-        this.shortestSolution = shortestSolution == null ? null : new ArrayList<>(shortestSolution);
+        this.solveMode = Objects.requireNonNull(solveMode, "solveMode cannot be null");
+        this.capacities = Objects.requireNonNull(capacities, "capacities cannot be null").clone();
+        this.startVolumes = Objects.requireNonNull(startVolumes, "startVolumes cannot be null").clone();
+        this.shortestSolution = shortestSolution == null ? null : List.copyOf(shortestSolution);
         this.allSolutions = copySolutions(allSolutions);
     }
 
@@ -37,7 +37,7 @@ public class SolverResult {
     }
 
     public List<Transfer> getShortestSolution() {
-        return shortestSolution == null ? null : new ArrayList<>(shortestSolution);
+        return shortestSolution == null ? null : List.copyOf(shortestSolution);
     }
 
     public List<List<Transfer>> getAllSolutions() {
@@ -49,14 +49,12 @@ public class SolverResult {
     }
 
     private static List<List<Transfer>> copySolutions(List<List<Transfer>> solutions) {
-        List<List<Transfer>> copy = new ArrayList<>();
         if (solutions == null) {
-            return copy;
+            return List.of();
         }
 
-        for (List<Transfer> solution : solutions) {
-            copy.add(new ArrayList<>(solution));
-        }
-        return copy;
+        return solutions.stream()
+                .map(List::copyOf)
+                .toList();
     }
 }

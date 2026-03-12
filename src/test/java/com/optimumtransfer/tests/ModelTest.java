@@ -1,8 +1,12 @@
 package com.optimumtransfer.tests;
 
+import com.optimumtransfer.application.SolveMode;
+import com.optimumtransfer.application.SolverRequest;
 import com.optimumtransfer.model.Container;
 import com.optimumtransfer.model.State;
 import com.optimumtransfer.model.Transfer;
+
+import java.util.List;
 
 public class ModelTest implements TestCase {
     @Override
@@ -34,6 +38,20 @@ public class ModelTest implements TestCase {
         TestSupport.assertEquals(2, transfer.getToContainer(), "Transfer should expose destination container.");
         TestSupport.assertEquals(3, transfer.getAmount(), "Transfer should expose amount.");
         TestSupport.assertEquals(3, transfer.getWeight(), "Transfer should expose weight.");
+        TestSupport.assertTrue(transfer.toString().contains("Transfer 3 units from container 0 to container 2"), "Transfer should provide readable output.");
+
+        SolverRequest request = new SolverRequest(
+                new int[]{4, 2},
+                new int[]{4, 0},
+                targetState -> true,
+                List.of(),
+                ignored -> 0,
+                SolveMode.SHORTEST_PATH,
+                SolverRequest.UNBOUNDED_DEPTH
+        );
+        TestSupport.assertEquals(SolverRequest.UNBOUNDED_DEPTH, request.getMaxDepth(), "SolverRequest should expose the shared unbounded depth constant.");
+        TestSupport.assertThrows(IllegalArgumentException.class,
+                () -> new SolverRequest(new int[]{4, 2}, new int[]{4}, targetState -> true, List.of(), ignored -> 0, SolveMode.SHORTEST_PATH, 1),
+                "SolverRequest should reject mismatched capacities and start volumes.");
     }
 }
-
