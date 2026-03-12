@@ -10,7 +10,8 @@ public final class TestRunner {
         List<TestCase> tests = List.of(
                 new ModelTest(),
                 new SimpleGoalParserTest(),
-                new AStarTest()
+                new AStarTest(),
+                new SolverServiceTest()
         );
 
         int passed = 0;
@@ -32,4 +33,3 @@ public final class TestRunner {
         System.out.println("Passed " + passed + " tests.");
     }
 }
-
