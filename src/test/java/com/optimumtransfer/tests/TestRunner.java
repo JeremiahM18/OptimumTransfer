@@ -13,7 +13,8 @@ public final class TestRunner {
                 new AStarTest(),
                 new SolverServiceTest(),
                 new SolverRequestPropertiesLoaderTest(),
-                new GridPathSolverTest()
+                new GridPathSolverTest(),
+                new RuntimeDefaultsTest()
         );
 
         int passed = 0;

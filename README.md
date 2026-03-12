@@ -1,25 +1,26 @@
 # Optimum Transfer
 
-Optimum Transfer is a Java 21 search engine for solving constrained container-transfer problems. It models container volumes as immutable states, uses A* search to find valid transfer sequences, and now supports both interactive and configuration-driven execution.
+Optimum Transfer is a Java 21 search engine for solving constrained container-transfer problems. It models container volumes as immutable states, uses A* search to find valid transfer sequences, and supports both interactive and configuration-driven execution.
 
 ## Current capabilities
 
 - Solve for the shortest transfer sequence with A* search
-- Enumerate valid solutions up to a depth limit or without a depth cap
+- Enumerate valid solutions up to a depth limit or with a capped global solution limit
 - Support exact-match, single-container, even-distribution, and expression-driven goals
 - Add transfer constraints at runtime or through configuration
 - Run through an interactive CLI or a `.properties` scenario file
 - Visualize solutions in the console or Swing UI
-- Export interactive shortest-path results to `transfer_log.txt`
+- Export interactive shortest-path results to a configurable log path
 - Run automated regression tests with the included JDK-only harness
 
 ## Project structure
 
 ```text
 src/main/java/com/optimumtransfer/app                 Interactive and config entry points
-src/main/java/com/optimumtransfer/application         Service-layer request/response models
+src/main/java/com/optimumtransfer/application         Service-layer request/response models and defaults
 src/main/java/com/optimumtransfer/application/config  Properties-based request loading
 src/main/java/com/optimumtransfer/constraints         Transfer rule interfaces
+src/main/java/com/optimumtransfer/extras              Standalone utility experiments
 src/main/java/com/optimumtransfer/goals               Goal-condition implementations and parser
 src/main/java/com/optimumtransfer/heuristics          Heuristic strategies for A*
 src/main/java/com/optimumtransfer/model               Core domain objects
@@ -56,6 +57,11 @@ powershell -ExecutionPolicy Bypass -File scripts/test.ps1
 java -cp build/classes/main com.optimumtransfer.app.Main
 ```
 
+Optional runtime overrides:
+
+- `-Doptimumtransfer.displayLimit=25`
+- `-Doptimumtransfer.exportPath=logs/transfer_log.txt`
+
 ## Run a reproducible scenario file
 
 Example scenario: [config/examples/exact-match.properties](config/examples/exact-match.properties)
@@ -64,12 +70,17 @@ Example scenario: [config/examples/exact-match.properties](config/examples/exact
 java -cp build/classes/main com.optimumtransfer.app.ConfigMain config/examples/exact-match.properties
 ```
 
+Optional runtime override:
+
+- `-Doptimumtransfer.batchPreviewLimit=5`
+
 Supported configuration keys include:
 
 - `capacities`
 - `startVolumes`
 - `solveMode`
 - `maxDepth`
+- `maxSolutions`
 - `goal.type`
 - `goal.targetVolumes`
 - `goal.containerIndex`
@@ -88,7 +99,8 @@ Supported configuration keys include:
 ## Architecture overview
 
 - `com.optimumtransfer.application.SolverService` is the application boundary for solving requests.
-- `com.optimumtransfer.application.SolverRequest` captures a reproducible solver run.
+- `com.optimumtransfer.application.SolverRequest` captures a reproducible solver run, including depth and solution safety limits.
+- `com.optimumtransfer.application.RuntimeDefaults` centralizes runtime defaults that were previously hardcoded in the entry points.
 - `com.optimumtransfer.model.State` is an immutable snapshot of container volumes.
 - `com.optimumtransfer.goals.GoalCondition` defines whether a state satisfies the target.
 - `com.optimumtransfer.heuristics.Heuristic` estimates remaining work for A*.
@@ -104,7 +116,7 @@ The repository now includes:
 
 - standard namespaced packages
 - repeatable local build and test scripts
-- regression coverage for model rules, parser behavior, search behavior, service orchestration, and config loading
+- regression coverage for model rules, parser behavior, search behavior, service orchestration, config loading, runtime defaults, and edge-case utilities
 - CI for compile-and-test validation
 - team-facing contribution and architecture docs
 

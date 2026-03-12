@@ -1,5 +1,6 @@
 package com.optimumtransfer.app;
 
+import com.optimumtransfer.application.RuntimeDefaults;
 import com.optimumtransfer.application.SolveMode;
 import com.optimumtransfer.application.SolverRequest;
 import com.optimumtransfer.application.SolverResult;
@@ -33,8 +34,8 @@ import java.util.Scanner;
 
 public class Main {
     private static final String YES = "yes";
-    private static final int DISPLAY_LIMIT = 50;
-    private static final Path TRANSFER_LOG_PATH = Path.of("transfer_log.txt");
+    private static final int DISPLAY_LIMIT = RuntimeDefaults.displayLimit();
+    private static final Path TRANSFER_LOG_PATH = RuntimeDefaults.exportPath();
 
     private final SolverService solverService;
 
@@ -295,7 +296,7 @@ public class Main {
         System.out.println("\nChoose solving strategy: ");
         System.out.println("1. Find the shortest (fastest) solution");
         System.out.println("2. Find all valid solutions up to a depth");
-        System.out.println("3. Find all valid solutions (Anything over 50 will simply print total)");
+        System.out.println("3. Find all valid solutions (capped by maxSolutions)");
         int solveChoice = getValidInt(sc, "Choice: ", 1, 3);
         sc.nextLine();
 

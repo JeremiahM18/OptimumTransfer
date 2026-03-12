@@ -1,5 +1,6 @@
 package com.optimumtransfer.app;
 
+import com.optimumtransfer.application.RuntimeDefaults;
 import com.optimumtransfer.application.SolveMode;
 import com.optimumtransfer.application.SolverResult;
 import com.optimumtransfer.application.SolverService;
@@ -11,6 +12,8 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class ConfigMain {
+    private static final int BATCH_PREVIEW_LIMIT = RuntimeDefaults.batchPreviewLimit();
+
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
             System.err.println("Usage: java -cp build/classes/main com.optimumtransfer.app.ConfigMain <config-file>");
@@ -42,7 +45,7 @@ public class ConfigMain {
 
         List<List<Transfer>> allSolutions = result.getAllSolutions();
         System.out.println("Solutions found: " + allSolutions.size());
-        for (int i = 0; i < Math.min(allSolutions.size(), 10); i++) {
+        for (int i = 0; i < Math.min(allSolutions.size(), BATCH_PREVIEW_LIMIT); i++) {
             List<Transfer> solution = allSolutions.get(i);
             int totalCost = solution.stream().mapToInt(Transfer::getWeight).sum();
             System.out.println("Solution " + (i + 1) + ": steps=" + solution.size() + ", totalCost=" + totalCost);
